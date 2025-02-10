@@ -68,7 +68,7 @@
           <!-- Here, you put the model resources that you are going to use later in the scene.
            All later usage in the scene will be reference to these assets-->
           <a-asset-item
-            id="mind-ar-model"
+            id="official-model"
             src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/softmind/scene.gltf"
           ></a-asset-item>
           <!-- You can also add files by yourself. You don't have to provide a link. Just remember to put it in the code_source/public folder.-->
@@ -99,21 +99,21 @@
              we make the tracked model in the "card-front" <a-entity> element below invisible and make this object visible,
               while applying the same transform onto this object, achieving the fluent transition from a tracked objet to a free object.-->
             <a-gltf-model
-              src="#mind-ar-model"
+              src="#official-model"
               position="0 0 0.1"
-              rotation="0 0 -90"
+              rotation="0 0 0"
               scale="0.005 0.005 0.005"
               shadow
               id="mind-ar-model"
               visible="false"
             ></a-gltf-model>
-            <a-light
+            <!-- <a-light
               id="ambient-light"
               type="ambient"
               color="yellow"
               intensity="0.5"
               position="0 0 0"
-            />
+            /> -->
           </a-entity>
         </a-entity>
         <a-entity
@@ -121,18 +121,18 @@
           mindar-image-target="targetIndex: 0"
           animation-controller="component: card-front;"
         >
-          <a-light
+          <!-- <a-light
             type="point"
             color="yellow"
             intensity="10.0"
             position="0 0 0.8"
-          ></a-light>
+          ></a-light> -->
           <a-entity id="card-front-moveable-root">
             <!-- This is the model being attached to the image -->
             <a-gltf-model
-              src="#mind-ar-model"
+              src="#official-model"
               position="0 0 0.1"
-              rotation="0 0 -90"
+              rotation="0 0 0"
               scale="0.005 0.005 0.005"
               shadow
               id="mind-ar-model"
@@ -146,13 +146,6 @@
           mindar-image-target="targetIndex: 1"
           animation-controller="component: card-back;"
         >
-          <a-gltf-model
-            rotation="0 0 -90 "
-            position="0 0 0.1"
-            scale="0.005 0.005 0.005"
-            src="#mind-ar-model"
-            animation="property: position; to: 0 0.1 0.1; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate"
-          />
         </a-entity>
       </a-scene>
     </div>

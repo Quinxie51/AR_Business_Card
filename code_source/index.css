@@ -80,7 +80,7 @@ body * {
   height: 100%;
   z-index: 0;
   overflow: hidden;
-  display: none; /* Hide the MindAR scene when starting to avoid the cyan loading screen.*/
+  /* display: none; Hide the MindAR scene when starting to avoid the cyan loading screen.*/
 }
 
 #ar-scene .a-canvas {

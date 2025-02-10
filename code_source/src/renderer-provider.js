@@ -2,7 +2,7 @@ export let globalRenderer;
 
 const rendererListenerDict = [];
 
-export const RendererProviderComponent = {
+export const rendererProviderComponent = {
   init() {
     this.el.sceneEl.addEventListener(
       'arReady',

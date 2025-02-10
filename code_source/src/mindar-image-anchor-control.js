@@ -10,12 +10,12 @@ export function intializeImageTracking(
   }
   const cardTarget = document.getElementById(target);
   cardTarget.addEventListener('targetFound', (event) => {
-    console.log('targetFound', event);
+    console.log('Target Found');
     onImageTargetPresent(target, handlerComponentName);
   });
 
   cardTarget.addEventListener('targetLost', (event) => {
-    console.log('targetLost', event);
+    console.log('Target Lost');
     onImageTargetLost(target, handlerComponentName);
   });
 }
