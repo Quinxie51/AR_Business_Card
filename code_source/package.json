@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "@types/three": "^0.170.0",
+    "three": "^0.170.0",
+    "vite": "^6.0.1"
+  },
+  "scripts": {
+    "dev": "vite",
+    "start": "npm run dev",
+    "preview": "vite preview",
+    "build": "vite build && rm -rf ../public/* && cp -R dist/* ../public/",
+    "lint": "DEBUG=eslint:cli-engine eslint src/",
+    "lintf": "npm run lint -- --fix"
+  }
+}

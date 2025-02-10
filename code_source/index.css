@@ -1,0 +1,101 @@
+body {
+  position: relative;
+  width: 100dvw !important;
+  height: 100dvh !important;
+  left: 0 !important;
+  top: 0 !important;
+  margin: 0 !important;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left) !important;
+  z-index: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+body * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#ui-display {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#ui-display * {
+  /*
+  * Provide a smooth animation effect.
+  */
+  transition: all ease-out 2s;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Our Custom ELements */
+
+/* AR Display Node, containing our custom canvas to achieve better control of the scene.
+  If we only use the original a-canvas, we will not be able to control the rendering logic of the 3D models attached to the scene, especially
+  if those models are configured to be attached to the image targets.
+  With this, we can achieve the transition from an image-tracked object to a freely-floating object.
+*/
+#ar-display {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  pointer-events: none;
+}
+
+#ar-display #ar-effect-canvas,
+#ar-display #video-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#ar-display #ar-effect-canvas {
+  z-index: 1;
+}
+
+/* MindAR Elements
+  Note that upon launch of the system, MindAR creates a series of elements inside the page, both inside and outside the <a-scene> element.
+  Here, we are directly controlling the parent of the <a-scene> element.
+ */
+#ar-scene {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  display: none; /* Hide the MindAR scene when starting to avoid the cyan loading screen.*/
+}
+
+#ar-scene .a-canvas {
+  /* We still use the original a-canvas to render the AR scene on mobile phone
+  due to unknown failure when trying to port AR rendering effects over to our custom canvas.*/
+  /* display: none; */
+}
+
+/* Hide MindAR default UI elements */
+#ar-scene > video {
+  opacity: 0;
+}
+
+.a-enter-vr,
+.a-orientation-modal,
+.mindar-ui-overlay {
+  display: none !important;
+}

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
+    />
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-aframe.prod.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.1/howler.min.js"></script>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Find nice fonts and icons on Google Fonts-->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rosarivo:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <script type="module" crossorigin src="./index.js"></script>
+    <link rel="stylesheet" href="./index.css" />
+    <title>Business Card</title>
+  </head>
+  <body>
+    <div id="ar-display">
+      <!-- Real video that gets displayed on screen.
+       This canvas forwards MindAR's video stream from a static <video> element that is dynamically controlled by MindAR. -->
+      <canvas id="video-canvas"></canvas>
+      <!-- If we only use the original a-canvas from MindAR,
+        we will not be able to control the rendering logic of the 3D models attached to the scene.
+        Here, whatever being rendered on ar-effect-canvas will overlay on top of the MindAR effects.
+        With this, we can achieve the transition from an image-tracked object to a freely-floating object.-->
+      <canvas id="ar-effect-canvas"></canvas>
+    </div>
+    <div id="ar-scene">
+      <!-- Note that all relative paths inside this document has the root folder as the public/ folder inside code_source/ -->
+
+      <!--  We no longer use DRACO in our a-scene due to the
+        lagging of rendering transparency and real-time tracking.
+        We can reduce faces in our models, which is effective enough to remove DRACO.
+        gltf-model="dracoDecoderPath: /draco/" -->
+
+      <!-- This a-scene is the core of MindAR image tracking effects. MindAR inherently uses a merge of three.js and A-Frame.
+       It tracks the image targets encoded inside ./targets.mind
+       To compile the .mind files, use this tool here: https://hiukim.github.io/mind-ar-js-doc/tools/compile
+       This tool supports tracking of multiple images at the same time. To do that, upload multiple images at the same time and get a large
+       compiled .mind file as the target. Notice that the "mindar-image-target" treats targetIndex as the sequence in which you uploaded the targets.  -->
+      <!-- If you want to delay the start of MindAR, you can add "autoStart: false;" to the  mindar-image attribute, and you need to
+       manually call document.querySelector('a-scene').systems['mindar-image-system'].start(); -->
+      <a-scene
+        mindar-image="imageTargetSrc: ./targets.mind; uiLoading:no; uiScanning:no;"
+        vr-mode-ui="enabled: false"
+        device-orientation-permission-ui="enabled: false"
+        xrextras-runtime-error
+        xrextras-gesture-detector
+        renderer="colorManagement:true; webgl2: true;"
+        xrweb="disableWorldTracking: false"
+        renderer-provider
+      >
+        <!-- There will be an <canvas class="a-canvas"> element being generated as this level once the MindAR engine starts.
+          We name this canvas element as "MindAR Canvas", which is also the canvas used by this a-scene.
+          Note that -->
+        <a-assets>
+          <!-- Here, you put the model resources that you are going to use later in the scene.
+           All later usage in the scene will be reference to these assets-->
+          <a-asset-item
+            id="mind-ar-model"
+            src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/softmind/scene.gltf"
+          ></a-asset-item>
+          <!-- You can also add files by yourself. You don't have to provide a link. Just remember to put it in the code_source/public folder.-->
+          <!-- <a-asset-item
+            id="placeholder"
+            src="/custom_card_assets/PLACEHOLDER"
+          ></a-asset-item> -->
+        </a-assets>
+        <!-- This is the camera used by MindAR to render content within this scene. -->
+        <a-camera
+          id="camera"
+          raycaster="objects: .cantap"
+          cursor="fuse: false; rayOrigin: mouse;"
+          position="0 0 0"
+          look-controls="enabled: false"
+        />
+        <!-- This scene also gets automatically rendered in the canvas. However, it is out of MindAR's binding to image targets.
+         If needed, we can render it to our custom canvas scene.-->
+        <a-entity
+          id="free-scene"
+          position="0 0 0"
+          rotation="0 0 0"
+          free-scene-render
+        >
+          <a-entity id="card-back-moveable-root" position="0 0 -6">
+            <!-- At the beginning, we disable the visibility of this model.
+             In the code, if we want to render the transition from an image-tracked object to a freely-floating object,
+             we make the tracked model in the "card-front" <a-entity> element below invisible and make this object visible,
+              while applying the same transform onto this object, achieving the fluent transition from a tracked objet to a free object.-->
+            <a-gltf-model
+              src="#mind-ar-model"
+              position="0 0 0.1"
+              rotation="0 0 -90"
+              scale="0.005 0.005 0.005"
+              shadow
+              id="mind-ar-model"
+              visible="false"
+            ></a-gltf-model>
+            <a-light
+              id="ambient-light"
+              type="ambient"
+              color="yellow"
+              intensity="0.5"
+              position="0 0 0"
+            />
+          </a-entity>
+        </a-entity>
+        <a-entity
+          id="card-front"
+          mindar-image-target="targetIndex: 0"
+          animation-controller="component: card-front;"
+        >
+          <a-light
+            type="point"
+            color="yellow"
+            intensity="10.0"
+            position="0 0 0.8"
+          ></a-light>
+          <a-entity id="card-front-moveable-root">
+            <!-- This is the model being attached to the image -->
+            <a-gltf-model
+              src="#mind-ar-model"
+              position="0 0 0.1"
+              rotation="0 0 -90"
+              scale="0.005 0.005 0.005"
+              shadow
+              id="mind-ar-model"
+            ></a-gltf-model>
+          </a-entity>
+        </a-entity>
+        <!-- MindAR supports image tracking of different images at the same time.
+         Just upload the two images in the same sequence as the index here on the online tool. -->
+        <a-entity
+          id="card-back"
+          mindar-image-target="targetIndex: 1"
+          animation-controller="component: card-back;"
+        >
+          <a-gltf-model
+            rotation="0 0 -90 "
+            position="0 0 0.1"
+            scale="0.005 0.005 0.005"
+            src="#mind-ar-model"
+            animation="property: position; to: 0 0.1 0.1; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate"
+          />
+        </a-entity>
+      </a-scene>
+    </div>
+    <div id="ui-display">
+      <!-- Add any of your customized UIs. Note that this will cover the original scene.-->
+    </div>
+  </body>
+</html>
