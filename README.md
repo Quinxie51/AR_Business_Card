@@ -1,66 +1,20 @@
-# AR Business Card
+# AR_Business_Card
 
-An interactive Augmented Reality business card that displays a 3D model and social media links when scanned. Built with A-Frame and MindAR.
+This is an online template for the AR Business Card with Mind-AR based tracking package. Mind-AR provides excellent image tracking & face tracking compatible with most web browsers (even browsers within some social media apps). I have added comments in the corresponding parts for you to better understand the code structure.
 
-## Features
+This code structure, after hundreds of trials and errors during real development, already forms a good starting point for you, removing lots of the need for you (and showing you how) to deal with MindAR's messy HTML & JS Framework.
 
-- 3D Model Animation: Displays an animated 3D model when the card is scanned
-- Social Media Integration: Interactive social media icons arranged in a circular pattern
-- Background Music: Ambient music that plays when the card is detected
-- Cross-device Support: Works on both desktop and mobile devices
-- Interactive Elements: Hover effects and click/touch interactions
-- Smooth Animations: Delayed appearance and floating animations
+However, please make sure you also look at their official documentation for understanding the material.
+Specifically, you might want to take a look at their [event handling documentation](https://hiukim.github.io/mind-ar-js-doc/examples/events-handling/)
 
-## Technologies Used
+## All code that really takes effect reside in the `code_source` folder. The outer wrapper is simply for Heorku hosting.
 
-- A-Frame: Web framework for building VR/AR experiences
-- MindAR: Image tracking and AR library
-- Three.js: 3D graphics library
-- Howler.js: Audio library for background music
+### To run the website locally
 
-## Setup
+First run `cd code_source/`, then run `npm start` to start the local website.
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/AR_Business_Card.git
-cd AR_Business_Card
-```
+### To build to Heroku:
 
-2. Open the project in a web server:
-```bash
-# Using Python 3
-python -m http.server
+First run `cd code_source/`, then run `npm run build` to build the results into the `public/` folder.
 
-# Or using Node.js
-npx http-server
-```
-
-3. Access the application through a web browser at `http://localhost:8000`
-
-## Usage
-
-1. Open the application on your mobile device or computer with a camera
-2. Point the camera at your business card
-3. Watch as the 3D model and social media icons appear
-4. Click/tap on the social media icons to visit the respective profiles
-5. Use the audio control button to toggle background music
-
-## Project Structure
-
-- `code_source/` - Main project directory
-  - `index.html` - Main application file
-  - `targets.mind` - AR target image data
-  - `models/` - 3D model files
-  - `audio/` - Background music files
-  - `images/` - Social media icons and other images
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Author
-
-[Your Name]
-- LinkedIn: [quyendoan51](https://linkedin.com/in/quyendoan51)
-- Portfolio: [quinxiedoan.xyz](https://quinxiedoan.xyz)
-- Email: quyendoan51@gmail.com
+### Notice that the entire structure is also compatible with React. You can also add MindAR into React webpage.
