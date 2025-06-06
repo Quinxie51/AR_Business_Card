@@ -150,12 +150,53 @@
         const sceneEl = document.querySelector('a-scene');
         const arSystem = sceneEl.systems['mindar-image-system'];
         
-        // Start AR
-        arSystem.start().then(() => {
-          console.log('AR started successfully');
-        }).catch((error) => {
-          console.error('AR failed to start:', error);
-        });
+        // First check if camera is available
+        navigator.mediaDevices.enumerateDevices()
+          .then(devices => {
+            const cameras = devices.filter(device => device.kind === 'videoinput');
+            console.log('Available cameras:', cameras.length);
+            
+            if (cameras.length === 0) {
+              console.error('No cameras found');
+              alert('No camera found. Please ensure your device has a camera and reload the page.');
+              return;
+            }
+
+            // Release any existing camera streams
+            navigator.mediaDevices.getUserMedia({ video: true })
+              .then(stream => {
+                stream.getTracks().forEach(track => track.stop());
+                console.log('Released existing camera streams');
+                
+                // Now start AR
+                startAR(arSystem);
+              })
+              .catch(err => {
+                console.log('No existing streams to release:', err);
+                startAR(arSystem);
+              });
+          })
+          .catch(err => {
+            console.error('Error checking cameras:', err);
+            alert('Error accessing camera. Please ensure camera permissions are granted and no other apps are using the camera.');
+          });
+      }
+
+      function startAR(arSystem) {
+        arSystem.start()
+          .then(() => {
+            console.log('AR started successfully');
+          })
+          .catch((error) => {
+            console.error('AR failed to start:', error);
+            if (error.name === 'NotReadableError') {
+              alert('Camera is in use by another application. Please close other apps using the camera and reload the page.');
+            } else if (error.name === 'NotAllowedError') {
+              alert('Camera permission denied. Please allow camera access and reload the page.');
+            } else {
+              alert('Error starting AR. Please ensure camera permissions are granted and reload the page.');
+            }
+          });
 
         // Handle target found/lost events
         sceneEl.addEventListener('targetFound', () => {
