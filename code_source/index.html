@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-aframe.prod.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.1/howler.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
       name="viewport"
@@ -23,10 +24,108 @@
     />
     <script type="module" crossorigin src="./index.js"></script>
     <link rel="stylesheet" href="./index.css" />
+    <style>
+      /* Add this inside your head section */
+      .clickable {
+        cursor: pointer;
+      }
+      .clickable:hover {
+        transform: scale(1.1);
+      }
+    </style>
+    <script>
+      let bgMusic;
+
+      // Initialize background music
+      function initializeAudio() {
+        bgMusic = new Howl({
+          src: ['/audio/background-music.mp3'],
+          loop: true,
+          volume: 0.5,
+          autoplay: false
+        });
+      }
+
+      // Audio control component
+      AFRAME.registerComponent('audio-controller', {
+        init: function() {
+          // Initialize audio when component loads
+          initializeAudio();
+
+          // Play music when target is found
+          this.el.addEventListener('targetFound', () => {
+            if (bgMusic && !bgMusic.playing()) {
+              bgMusic.play();
+            }
+          });
+
+          // Optional: Pause music when target is lost
+          this.el.addEventListener('targetLost', () => {
+            if (bgMusic && bgMusic.playing()) {
+              bgMusic.fade(0.5, 0, 1000);
+              setTimeout(() => bgMusic.pause(), 1000);
+            }
+          });
+        }
+      });
+
+      // Add this inside your head section
+      AFRAME.registerComponent('clickable', {
+        init: function() {
+          // Add cursor hover visual feedback
+          this.el.addEventListener('mouseenter', () => {
+            this.el.setAttribute('scale', '1.2 1.2 1.2');
+          });
+          
+          this.el.addEventListener('mouseleave', () => {
+            this.el.setAttribute('scale', '1 1 1');
+          });
+
+          // Handle both touch and mouse interactions
+          this.el.addEventListener('click', (evt) => {
+            console.log('Clicked/Touched!');
+            const url = this.el.getAttribute('link-url');
+            const type = this.el.getAttribute('link-type');
+            
+            if (type === 'url') {
+              window.open(url, '_blank');
+            } else if (type === 'email') {
+              window.location.href = url;
+            }
+          });
+        }
+      });
+
+      // Add delayed appearance component
+      AFRAME.registerComponent('delayed-appearance', {
+        init: function() {
+          // Start with the element hidden
+          this.el.setAttribute('visible', false);
+          
+          // After 2 seconds, make it visible and start the fade in
+          setTimeout(() => {
+            this.el.setAttribute('visible', true);
+            this.el.setAttribute('animation__fade', {
+              property: 'opacity',
+              from: 0,
+              to: 1,
+              dur: 1000,
+              easing: 'easeInOutQuad'
+            });
+          }, 2000);
+        }
+      });
+    </script>
     <title>Business Card</title>
   </head>
   <body>
     <div id="ar-display">
+      <!-- Add audio controls -->
+      <div id="audio-controls" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+        <button onclick="toggleMusic()" style="padding: 10px; border-radius: 50%; background: rgba(255,255,255,0.7); border: none; cursor: pointer;">
+          🔊
+        </button>
+      </div>
       <!-- Real video that gets displayed on screen.
        This canvas forwards MindAR's video stream from a static <video> element that is dynamically controlled by MindAR. -->
       <canvas id="video-canvas"></canvas>
@@ -61,6 +160,9 @@
         xrweb="disableWorldTracking: false"
         renderer-provider
       >
+        <!-- Add lighting -->
+        <a-light type="ambient" intensity="1"></a-light>
+        <a-light type="directional" intensity="0.6" position="1 1 1"></a-light>
         <!-- There will be an <canvas class="a-canvas"> element being generated as this level once the MindAR engine starts.
           We name this canvas element as "MindAR Canvas", which is also the canvas used by this a-scene.
           Note that -->
@@ -68,9 +170,14 @@
           <!-- Here, you put the model resources that you are going to use later in the scene.
            All later usage in the scene will be reference to these assets-->
           <a-asset-item
-            id="official-model"
-            src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/softmind/scene.gltf"
+            id="custom-model"
+            src="/models/scene/robot_playground/scene.gltf"
+            onload="console.log('Model loaded successfully')"
+            onerror="console.error('Error loading model:', event)"
           ></a-asset-item>
+          <img id="linkedin-icon" src="/images/linkedin.png" />
+          <img id="email-icon" src="/images/gmail.png" />
+          <img id="portfolio-icon" src="/images/portfolio.png" />
           <!-- You can also add files by yourself. You don't have to provide a link. Just remember to put it in the code_source/public folder.-->
           <!-- <a-asset-item
             id="placeholder"
@@ -80,11 +187,11 @@
         <!-- This is the camera used by MindAR to render content within this scene. -->
         <a-camera
           id="camera"
-          raycaster="objects: .cantap"
-          cursor="fuse: false; rayOrigin: mouse;"
           position="0 0 0"
           look-controls="enabled: false"
-        />
+          cursor="fuse: false; rayOrigin: mouse;"
+          raycaster="far: 10000; objects: .clickable"
+        ></a-camera>
         <!-- This scene also gets automatically rendered in the canvas. However, it is out of MindAR's binding to image targets.
          If needed, we can render it to our custom canvas scene.-->
         <a-entity
@@ -99,13 +206,17 @@
              we make the tracked model in the "card-front" <a-entity> element below invisible and make this object visible,
               while applying the same transform onto this object, achieving the fluent transition from a tracked objet to a free object.-->
             <a-gltf-model
-              src="#official-model"
-              position="0 0 0.1"
-              rotation="0 0 0"
-              scale="0.005 0.005 0.005"
+              src="#custom-model"
+              position="0 0.5 0"
+              rotation="-90 180 0"
+              scale="0.2 0.2 0.2"
               shadow
               id="mind-ar-model"
+              animation-mixer="clip: *; loop: repeat; timeScale: 1"
+              animation__float="property: position; dur: 2000; dir: alternate; easing: easeInOutQuad; loop: true; from: 0 0.5 0; to: 0 0.7 0"
               visible="false"
+              onload="console.log('3D Model loaded successfully'); this.setAttribute('animation-mixer', {clip: '*', loop: 'repeat', timeScale: 1});"
+              onerror="console.error('Error loading 3D model:', this.error)"
             ></a-gltf-model>
             <!-- <a-light
               id="ambient-light"
@@ -120,6 +231,7 @@
           id="card-front"
           mindar-image-target="targetIndex: 0"
           animation-controller="component: card-front;"
+          audio-controller
         >
           <!-- <a-light
             type="point"
@@ -128,15 +240,80 @@
             position="0 0 0.8"
           ></a-light> -->
           <a-entity id="card-front-moveable-root">
-            <!-- This is the model being attached to the image -->
-            <a-gltf-model
-              src="#official-model"
-              position="0 0 0.1"
-              rotation="0 0 0"
-              scale="0.005 0.005 0.005"
-              shadow
-              id="mind-ar-model"
-            ></a-gltf-model>
+            <!-- Container for model and icons that will float together -->
+            <a-entity
+              id="floating-container"
+              position="0 0.5 0"
+              animation__float="property: position; dur: 2000; dir: alternate; easing: easeInOutQuad; loop: true; from: 0 0.5 0; to: 0 0.7 0"
+            >
+              <!-- 3D Model -->
+              <a-gltf-model
+                src="#custom-model"
+                position="0 0 0"
+                rotation="-90 180 0"
+                scale="0.2 0.2 0.2"
+                shadow
+                id="mind-ar-model"
+                animation-mixer="clip: *; loop: repeat; timeScale: 1"
+                onload="console.log('3D Model loaded successfully'); this.setAttribute('animation-mixer', {clip: '*', loop: 'repeat', timeScale: 1});"
+                onerror="console.error('Error loading 3D model:', this.error)"
+              ></a-gltf-model>
+
+              <!-- Social Links in a circle -->
+              <!-- LinkedIn Icon - Top -->
+              <a-image
+                src="#linkedin-icon"
+                position="0 0.3 0"
+                height="0.15"
+                width="0.15"
+                class="clickable"
+                opacity="0"
+                visible="false"
+                delayed-appearance
+                animation__orbit="property: rotation; dur: 30000; loop: true; to: 0 360 0;"
+                clickable
+                link-type="url"
+                link-url="https://www.linkedin.com/in/quyendoan51/"
+              ></a-image>
+
+              <!-- Portfolio Icon - Bottom Right -->
+              <a-image
+                src="#portfolio-icon"
+                position="0.26 -0.15 0"
+                height="0.15"
+                width="0.15"
+                class="clickable"
+                opacity="0"
+                visible="false"
+                delayed-appearance
+                animation__orbit="property: rotation; dur: 30000; loop: true; to: 0 360 0;"
+                clickable
+                link-type="url"
+                link-url="https://quinxiedoan.xyz"
+              ></a-image>
+
+              <!-- Email Icon - Bottom Left -->
+              <a-image
+                src="#email-icon"
+                position="-0.26 -0.15 0"
+                height="0.15"
+                width="0.15"
+                class="clickable"
+                opacity="0"
+                visible="false"
+                delayed-appearance
+                animation__orbit="property: rotation; dur: 30000; loop: true; to: 0 360 0;"
+                clickable
+                link-type="email"
+                link-url="mailto:quyendoan51@gmail.com"
+              ></a-image>
+
+              <!-- Circular path for icons -->
+              <a-entity
+                id="icon-orbit"
+                animation__rotate="property: rotation; dur: 30000; loop: true; to: 0 360 0; easing: linear"
+              ></a-entity>
+            </a-entity>
           </a-entity>
         </a-entity>
         <!-- MindAR supports image tracking of different images at the same time.
@@ -152,5 +329,22 @@
     <div id="ui-display">
       <!-- Add any of your customized UIs. Note that this will cover the original scene.-->
     </div>
+    <script>
+      // Add music control function
+      function toggleMusic() {
+        if (!bgMusic) return;
+        
+        const button = document.querySelector('#audio-controls button');
+        if (bgMusic.playing()) {
+          bgMusic.fade(0.5, 0, 500);
+          setTimeout(() => bgMusic.pause(), 500);
+          button.textContent = '🔈';
+        } else {
+          bgMusic.fade(0, 0.5, 500);
+          bgMusic.play();
+          button.textContent = '🔊';
+        }
+      }
+    </script>
   </body>
 </html>

@@ -81,7 +81,7 @@ export const animationControllerComponent = {
       }
     }
     if ('imageTargetPresent' in diff) {
-      // this.el.object3D.visible = this.data.imageTargetPresent;
+      this.el.object3D.visible = this.data.imageTargetPresent;
       if (this.data.imageTargetPresent) {
         if (this.data.component === 'card-front') {
           // Do something when the card front becomes present

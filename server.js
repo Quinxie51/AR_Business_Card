@@ -3,6 +3,7 @@
 // https://www.youtube.com/watch?v=mJrmbGvsNps
 const express = require('express');
 const path = require('node:path');
+const os = require('os');
 
 const app = express();
 
@@ -16,14 +17,31 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-app.use(express.static(path.join(__dirname, '/public')));
+app.use(express.static(path.join(__dirname, '/code_source')));
 
 app.get('*', function (request, response) {
-  response.sendFile(path.join(__dirname, '/public', '/index.html'));
+  response.sendFile(path.join(__dirname, '/code_source', '/index.html'));
 });
 
 const PORT = process.env.PORT || 8888;
 
-app.listen(PORT, () => {
-  console.log(`server started at port ${PORT}`);
+// Get local IP address
+const getLocalIp = () => {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const interface of interfaces[name]) {
+      const { address, family, internal } = interface;
+      if (family === 'IPv4' && !internal) {
+        return address;
+      }
+    }
+  }
+  return '127.0.0.1';
+};
+
+app.listen(PORT, '0.0.0.0', () => {
+  const localIp = getLocalIp();
+  console.log(`Server running at:`);
+  console.log(`- Local: http://localhost:${PORT}`);
+  console.log(`- Network: http://${localIp}:${PORT}`);
 });

@@ -24,9 +24,24 @@ sceneEl.addEventListener(
 );
 
 // When the window is resized or the orientation is changed, restart MindAR.
+let resizeTimeout;
 window.addEventListener('resize', () => {
-  const sceneEl = document.querySelector('a-scene');
-  const arSystem = sceneEl.systems['mindar-image-system'];
-  arSystem.stop();
-  arSystem.start();
+  // Clear any existing timeout to prevent multiple restarts
+  if (resizeTimeout) {
+    clearTimeout(resizeTimeout);
+  }
+  
+  // Add a small delay to prevent rapid restarts
+  resizeTimeout = setTimeout(() => {
+    const sceneEl = document.querySelector('a-scene');
+    const arSystem = sceneEl.systems['mindar-image-system'];
+    
+    // Only restart if the system exists and is running
+    if (arSystem && arSystem.el.sceneEl.isPlaying) {
+      arSystem.stop(); // Stop the system
+      setTimeout(() => {
+        arSystem.start(); // Start after a brief delay
+      }, 100);
+    }
+  }, 500);
 });
