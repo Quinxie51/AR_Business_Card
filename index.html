@@ -133,6 +133,39 @@
           }, 2000);
         }
       });
+
+      // Initialize AR when the page loads
+      window.addEventListener('load', () => {
+        const sceneEl = document.querySelector('a-scene');
+        
+        if (sceneEl.hasLoaded) {
+          initializeAR();
+        } else {
+          sceneEl.addEventListener('loaded', initializeAR);
+        }
+      });
+
+      function initializeAR() {
+        console.log('Initializing AR...');
+        const sceneEl = document.querySelector('a-scene');
+        const arSystem = sceneEl.systems['mindar-image-system'];
+        
+        // Start AR
+        arSystem.start().then(() => {
+          console.log('AR started successfully');
+        }).catch((error) => {
+          console.error('AR failed to start:', error);
+        });
+
+        // Handle target found/lost events
+        sceneEl.addEventListener('targetFound', () => {
+          console.log('Target found');
+        });
+
+        sceneEl.addEventListener('targetLost', () => {
+          console.log('Target lost');
+        });
+      }
     </script>
     <title>Business Card</title>
   </head>
