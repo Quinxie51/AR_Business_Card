@@ -5,6 +5,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
     />
+    <link rel="icon" type="image/png" href="./images/favicon.png">
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-aframe.prod.js"></script>
@@ -195,11 +196,6 @@
           <img id="linkedin-icon" src="./images/linkedin.png" />
           <img id="email-icon" src="./images/gmail.png" />
           <img id="portfolio-icon" src="./images/portfolio.png" />
-          <!-- You can also add files by yourself. You don't have to provide a link. Just remember to put it in the code_source/public folder.-->
-          <!-- <a-asset-item
-            id="placeholder"
-            src="/custom_card_assets/PLACEHOLDER"
-          ></a-asset-item> -->
         </a-assets>
         <!-- This is the camera used by MindAR to render content within this scene. -->
         <a-camera
@@ -235,13 +231,6 @@
               onload="console.log('3D Model loaded successfully'); this.setAttribute('animation-mixer', {clip: '*', loop: 'repeat', timeScale: 1});"
               onerror="console.error('Error loading 3D model:', this.error)"
             ></a-gltf-model>
-            <!-- <a-light
-              id="ambient-light"
-              type="ambient"
-              color="yellow"
-              intensity="0.5"
-              position="0 0 0"
-            /> -->
           </a-entity>
         </a-entity>
         <a-entity
@@ -250,12 +239,6 @@
           animation-controller="component: card-front;"
           audio-controller
         >
-          <!-- <a-light
-            type="point"
-            color="yellow"
-            intensity="10.0"
-            position="0 0 0.8"
-          ></a-light> -->
           <a-entity id="card-front-moveable-root">
             <!-- Container for model and icons that will float together -->
             <a-entity
