@@ -87,40 +87,10 @@
         }
       });
 
-      // Add this inside your head section
-      AFRAME.registerComponent('clickable', {
-        init: function() {
-          // Add cursor hover visual feedback
-          this.el.addEventListener('mouseenter', () => {
-            this.el.setAttribute('scale', '1.2 1.2 1.2');
-          });
-          
-          this.el.addEventListener('mouseleave', () => {
-            this.el.setAttribute('scale', '1 1 1');
-          });
-
-          // Handle both touch and mouse interactions
-          this.el.addEventListener('click', (evt) => {
-            console.log('Clicked/Touched!');
-            const url = this.el.getAttribute('link-url');
-            const type = this.el.getAttribute('link-type');
-            
-            if (type === 'url') {
-              window.open(url, '_blank');
-            } else if (type === 'email') {
-              window.location.href = url;
-            }
-          });
-        }
-      });
-
-      // Add delayed appearance component
+      // Register components before scene loads
       AFRAME.registerComponent('delayed-appearance', {
         init: function() {
-          // Start with the element hidden
           this.el.setAttribute('visible', false);
-          
-          // After 2 seconds, make it visible and start the fade in
           setTimeout(() => {
             this.el.setAttribute('visible', true);
             this.el.setAttribute('animation__fade', {
@@ -134,79 +104,75 @@
         }
       });
 
-      // Initialize AR when the page loads
-      window.addEventListener('load', () => {
-        const sceneEl = document.querySelector('a-scene');
-        
-        if (sceneEl.hasLoaded) {
-          initializeAR();
-        } else {
-          sceneEl.addEventListener('loaded', initializeAR);
+      AFRAME.registerComponent('clickable', {
+        init: function() {
+          this.el.addEventListener('mouseenter', () => {
+            this.el.setAttribute('scale', '1.2 1.2 1.2');
+          });
+          
+          this.el.addEventListener('mouseleave', () => {
+            this.el.setAttribute('scale', '1 1 1');
+          });
+
+          this.el.addEventListener('click', (evt) => {
+            const url = this.el.getAttribute('link-url');
+            const type = this.el.getAttribute('link-type');
+            
+            if (type === 'url') {
+              window.open(url, '_blank');
+            } else if (type === 'email') {
+              window.location.href = url;
+            }
+          });
         }
       });
 
-      function initializeAR() {
-        console.log('Initializing AR...');
+      document.addEventListener('DOMContentLoaded', function() {
         const sceneEl = document.querySelector('a-scene');
-        const arSystem = sceneEl.systems['mindar-image-system'];
         
-        // First check if camera is available
-        navigator.mediaDevices.enumerateDevices()
-          .then(devices => {
-            const cameras = devices.filter(device => device.kind === 'videoinput');
-            console.log('Available cameras:', cameras.length);
-            
-            if (cameras.length === 0) {
-              console.error('No cameras found');
-              alert('No camera found. Please ensure your device has a camera and reload the page.');
-              return;
-            }
+        // Check if scene has already loaded
+        if (sceneEl.hasLoaded) {
+          onSceneLoaded();
+        } else {
+          sceneEl.addEventListener('loaded', onSceneLoaded);
+        }
 
-            // Release any existing camera streams
-            navigator.mediaDevices.getUserMedia({ video: true })
-              .then(stream => {
-                stream.getTracks().forEach(track => track.stop());
-                console.log('Released existing camera streams');
-                
-                // Now start AR
-                startAR(arSystem);
-              })
-              .catch(err => {
-                console.log('No existing streams to release:', err);
-                startAR(arSystem);
-              });
-          })
-          .catch(err => {
-            console.error('Error checking cameras:', err);
-            alert('Error accessing camera. Please ensure camera permissions are granted and no other apps are using the camera.');
-          });
-      }
-
-      function startAR(arSystem) {
-        arSystem.start()
-          .then(() => {
-            console.log('AR started successfully');
-          })
-          .catch((error) => {
-            console.error('AR failed to start:', error);
-            if (error.name === 'NotReadableError') {
-              alert('Camera is in use by another application. Please close other apps using the camera and reload the page.');
-            } else if (error.name === 'NotAllowedError') {
-              alert('Camera permission denied. Please allow camera access and reload the page.');
-            } else {
-              alert('Error starting AR. Please ensure camera permissions are granted and reload the page.');
-            }
-          });
-
-        // Handle target found/lost events
-        sceneEl.addEventListener('targetFound', () => {
-          console.log('Target found');
-        });
-
-        sceneEl.addEventListener('targetLost', () => {
-          console.log('Target lost');
-        });
-      }
+        function onSceneLoaded() {
+          console.log('Scene loaded, checking camera...');
+          
+          // Check for camera access
+          navigator.mediaDevices.enumerateDevices()
+            .then(devices => {
+              const cameras = devices.filter(device => device.kind === 'videoinput');
+              console.log('Available cameras:', cameras.length);
+              
+              if (cameras.length === 0) {
+                throw new Error('No cameras found');
+              }
+              
+              // Try to start AR
+              const mindARSystem = document.querySelector('a-scene').systems['mindar-image'];
+              if (!mindARSystem) {
+                throw new Error('AR system not initialized');
+              }
+              
+              return mindARSystem.start();
+            })
+            .then(() => {
+              console.log('AR started successfully');
+            })
+            .catch(error => {
+              console.error('AR initialization error:', error);
+              if (error.name === 'NotReadableError') {
+                alert('Camera is in use by another application. Please close other apps using the camera and reload the page.');
+              } else if (error.name === 'NotAllowedError') {
+                alert('Camera permission denied. Please allow camera access and reload the page.');
+              } else {
+                alert('Error starting AR: ' + error.message);
+              }
+            });
+        }
+      });
     </script>
     <title>Business Card</title>
   </head>
