@@ -38,6 +38,9 @@
       let bgMusic;
       let sceneEl;
       let arSystem;
+      let maxRetries = 5;
+      let retryCount = 0;
+      let retryDelay = 1000; // 1 second
 
       // Initialize background music
       function initializeAudio() {
@@ -145,16 +148,43 @@
         }
       }
 
+      function waitForARSystem() {
+        return new Promise((resolve, reject) => {
+          const check = () => {
+            console.log('Checking AR system...', retryCount);
+            arSystem = sceneEl.systems['mindar-image-aframe'];
+            
+            if (arSystem) {
+              console.log('AR system found');
+              resolve(arSystem);
+            } else if (retryCount < maxRetries) {
+              retryCount++;
+              setTimeout(check, retryDelay);
+            } else {
+              reject(new Error('AR system initialization timeout'));
+            }
+          };
+          check();
+        });
+      }
+
       async function initializeAR() {
         try {
           await checkCamera();
           
-          if (!sceneEl || !arSystem) {
-            throw new Error('AR system not ready');
+          if (!sceneEl) {
+            throw new Error('Scene not ready');
           }
 
+          // Wait for AR system to be available
+          arSystem = await waitForARSystem();
+          
+          // Start AR
           await arSystem.start();
           console.log('AR started successfully');
+          
+          // Reset retry count for next time
+          retryCount = 0;
         } catch (error) {
           console.error('AR initialization error:', error);
           if (error.name === 'NotReadableError') {
@@ -162,7 +192,7 @@
           } else if (error.name === 'NotAllowedError') {
             alert('Camera permission denied. Please allow camera access and reload the page.');
           } else {
-            alert('Error starting AR: ' + error.message);
+            alert('Error starting AR: ' + error.message + '\nPlease reload the page and try again.');
           }
         }
       }
@@ -174,9 +204,6 @@
         // Set up scene loaded handler
         const handleSceneLoaded = () => {
           console.log('A-Frame scene loaded');
-          arSystem = sceneEl.systems['mindar-image-aframe'];
-          
-          // Wait a short moment for everything to initialize
           setTimeout(() => {
             initializeAR();
           }, 1000);
