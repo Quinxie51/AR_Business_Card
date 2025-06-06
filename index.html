@@ -36,6 +36,8 @@
     </style>
     <script>
       let bgMusic;
+      let sceneEl;
+      let arSystem;
 
       // Initialize background music
       function initializeAudio() {
@@ -127,25 +129,31 @@
         }
       });
 
-      const startAR = async () => {
+      async function checkCamera() {
         try {
-          const cameras = await navigator.mediaDevices.enumerateDevices()
-            .then(devices => devices.filter(device => device.kind === 'videoinput'));
-          
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const cameras = devices.filter(device => device.kind === 'videoinput');
           console.log('Available cameras:', cameras.length);
           
           if (cameras.length === 0) {
             throw new Error('No cameras found');
           }
+          return true;
+        } catch (error) {
+          console.error('Camera check failed:', error);
+          throw error;
+        }
+      }
 
-          const sceneEl = document.querySelector('a-scene');
-          const system = sceneEl.systems['mindar-image-aframe'];
+      async function initializeAR() {
+        try {
+          await checkCamera();
           
-          if (!system) {
-            throw new Error('Please wait for AR system to initialize');
+          if (!sceneEl || !arSystem) {
+            throw new Error('AR system not ready');
           }
 
-          await system.start();
+          await arSystem.start();
           console.log('AR started successfully');
         } catch (error) {
           console.error('AR initialization error:', error);
@@ -157,18 +165,30 @@
             alert('Error starting AR: ' + error.message);
           }
         }
-      };
+      }
 
+      // Wait for both DOM and A-Frame scene to be ready
       document.addEventListener('DOMContentLoaded', () => {
-        const sceneEl = document.querySelector('a-scene');
+        sceneEl = document.querySelector('a-scene');
         
+        // Set up scene loaded handler
+        const handleSceneLoaded = () => {
+          console.log('A-Frame scene loaded');
+          arSystem = sceneEl.systems['mindar-image-aframe'];
+          
+          // Wait a short moment for everything to initialize
+          setTimeout(() => {
+            initializeAR();
+          }, 1000);
+        };
+
         if (sceneEl.hasLoaded) {
-          startAR();
+          handleSceneLoaded();
         } else {
-          sceneEl.addEventListener('loaded', startAR);
+          sceneEl.addEventListener('loaded', handleSceneLoaded);
         }
 
-        // Add event listeners for target tracking
+        // Add target tracking events
         sceneEl.addEventListener('targetFound', () => {
           console.log('Target image found');
         });
