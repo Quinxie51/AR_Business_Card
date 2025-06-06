@@ -38,12 +38,21 @@
 
       // Initialize background music
       function initializeAudio() {
-        bgMusic = new Howl({
-          src: ['./audio/background-music.mp3'],
-          loop: true,
-          volume: 0.5,
-          autoplay: false
-        });
+        try {
+          bgMusic = new Howl({
+            src: ['./audio/background-music.mp3'],
+            loop: true,
+            volume: 0.5,
+            autoplay: false,
+            onloaderror: function() {
+              console.log('Audio file not found or cannot be loaded');
+              document.getElementById('audio-controls').style.display = 'none';
+            }
+          });
+        } catch (error) {
+          console.log('Audio initialization failed:', error);
+          document.getElementById('audio-controls').style.display = 'none';
+        }
       }
 
       // Audio control component
@@ -55,15 +64,23 @@
           // Play music when target is found
           this.el.addEventListener('targetFound', () => {
             if (bgMusic && !bgMusic.playing()) {
-              bgMusic.play();
+              try {
+                bgMusic.play();
+              } catch (error) {
+                console.log('Could not play audio:', error);
+              }
             }
           });
 
           // Optional: Pause music when target is lost
           this.el.addEventListener('targetLost', () => {
             if (bgMusic && bgMusic.playing()) {
-              bgMusic.fade(0.5, 0, 1000);
-              setTimeout(() => bgMusic.pause(), 1000);
+              try {
+                bgMusic.fade(0.5, 0, 1000);
+                setTimeout(() => bgMusic.pause(), 1000);
+              } catch (error) {
+                console.log('Could not pause audio:', error);
+              }
             }
           });
         }
