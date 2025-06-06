@@ -39,7 +39,7 @@
       // Initialize background music
       function initializeAudio() {
         bgMusic = new Howl({
-          src: ['/audio/background-music.mp3'],
+          src: ['./audio/background-music.mp3'],
           loop: true,
           volume: 0.5,
           autoplay: false
@@ -171,13 +171,13 @@
            All later usage in the scene will be reference to these assets-->
           <a-asset-item
             id="custom-model"
-            src="/models/scene/robot_playground/scene.gltf"
+            src="./models/scene/robot_playground/scene.gltf"
             onload="console.log('Model loaded successfully')"
             onerror="console.error('Error loading model:', event)"
           ></a-asset-item>
-          <img id="linkedin-icon" src="/images/linkedin.png" />
-          <img id="email-icon" src="/images/gmail.png" />
-          <img id="portfolio-icon" src="/images/portfolio.png" />
+          <img id="linkedin-icon" src="./images/linkedin.png" />
+          <img id="email-icon" src="./images/gmail.png" />
+          <img id="portfolio-icon" src="./images/portfolio.png" />
           <!-- You can also add files by yourself. You don't have to provide a link. Just remember to put it in the code_source/public folder.-->
           <!-- <a-asset-item
             id="placeholder"
