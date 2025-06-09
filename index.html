@@ -152,7 +152,7 @@
         return new Promise((resolve, reject) => {
           const check = () => {
             console.log('Checking AR system...', retryCount);
-            arSystem = sceneEl.systems['mindar-image-aframe'];
+            arSystem = sceneEl.systems['mindar-image'];
             
             if (arSystem) {
               console.log('AR system found');
@@ -175,6 +175,16 @@
           if (!sceneEl) {
             throw new Error('Scene not ready');
           }
+
+          // Wait for all assets to load
+          await new Promise((resolve) => {
+            const assets = document.querySelector('a-assets');
+            if (assets.hasLoaded) {
+              resolve();
+            } else {
+              assets.addEventListener('loaded', resolve, { once: true });
+            }
+          });
 
           // Wait for AR system to be available
           arSystem = await waitForARSystem();
@@ -199,11 +209,13 @@
 
       // Wait for both DOM and A-Frame scene to be ready
       document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM loaded');
         sceneEl = document.querySelector('a-scene');
         
         // Set up scene loaded handler
         const handleSceneLoaded = () => {
           console.log('A-Frame scene loaded');
+          console.log('Available systems:', Object.keys(sceneEl.systems));
           setTimeout(() => {
             initializeAR();
           }, 1000);
@@ -222,6 +234,11 @@
 
         sceneEl.addEventListener('targetLost', () => {
           console.log('Target image lost');
+        });
+
+        // Log any AR-related errors
+        sceneEl.addEventListener('arError', (error) => {
+          console.error('AR Error:', error);
         });
       });
     </script>
