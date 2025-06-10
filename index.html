@@ -44,21 +44,42 @@
 
       // Initialize background music
       function initializeAudio() {
-        try {
-          bgMusic = new Howl({
-            src: ['./audio/background-music.mp3'],
-            loop: true,
-            volume: 0.5,
-            autoplay: false,
-            onloaderror: function() {
-              console.log('Audio file not found or cannot be loaded');
-              document.getElementById('audio-controls').style.display = 'none';
-            }
-          });
-        } catch (error) {
-          console.log('Audio initialization failed:', error);
-          document.getElementById('audio-controls').style.display = 'none';
+        // Hide audio controls by default
+        const audioControls = document.getElementById('audio-controls');
+        if (audioControls) {
+          audioControls.style.display = 'none';
         }
+
+        // Check if audio file exists before initializing
+        fetch('./audio/background-music.mp3', { method: 'HEAD' })
+          .then(response => {
+            if (response.ok) {
+              try {
+                bgMusic = new Howl({
+                  src: ['./audio/background-music.mp3'],
+                  loop: true,
+                  volume: 0.5,
+                  autoplay: false,
+                  onload: function() {
+                    console.log('Audio loaded successfully');
+                    if (audioControls) {
+                      audioControls.style.display = 'block';
+                    }
+                  },
+                  onloaderror: function() {
+                    console.log('Audio file cannot be loaded');
+                  }
+                });
+              } catch (error) {
+                console.log('Audio initialization failed:', error);
+              }
+            } else {
+              console.log('Audio file not found');
+            }
+          })
+          .catch(error => {
+            console.log('Error checking audio file:', error);
+          });
       }
 
       // Audio control component
@@ -209,19 +230,32 @@
           
           // Start AR
           console.log('Starting AR system...');
-          await arSystem.start();
-          console.log('AR started successfully');
+          try {
+            await arSystem.start();
+            console.log('AR started successfully');
+          } catch (startError) {
+            if (startError.name === 'NotReadableError') {
+              throw new Error('Camera is being used by another application. Please:\n1. Close other apps using your camera (like Zoom, Teams, etc.)\n2. Close other browser tabs that might be using your camera\n3. If on mobile, try closing and reopening your browser\n4. Reload this page and try again');
+            } else {
+              throw startError;
+            }
+          }
           
           // Reset retry count for next time
           retryCount = 0;
         } catch (error) {
           console.error('AR initialization error:', error);
-          if (error.name === 'NotReadableError') {
-            alert('Camera is in use by another application. Please close other apps using the camera and reload the page.');
+          let errorMessage = error.message;
+          
+          // Customize error messages
+          if (error.name === 'NotReadableError' || errorMessage.includes('Camera is being used')) {
+            alert(errorMessage);
           } else if (error.name === 'NotAllowedError') {
-            alert('Camera permission denied. Please allow camera access and reload the page.');
+            alert('Camera access was denied. Please:\n1. Click the camera icon in your browser\'s address bar\n2. Select "Allow" for camera access\n3. Reload this page');
+          } else if (error.name === 'NotFoundError') {
+            alert('No camera found. Please make sure your device has a working camera and reload the page.');
           } else {
-            alert('Error starting AR: ' + error.message + '\nPlease reload the page and try again.');
+            alert('Error starting AR: ' + errorMessage + '\nPlease reload the page and try again.');
           }
         }
       }
