@@ -10,12 +10,14 @@ export function initializeLightingEnvironment(renderer) {
   if (!renderer) return;
 
   // Configure renderer for modern lighting
-  renderer.useLegacyLights = false; // Use the new lighting system
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  
+  // Modern physically-based lighting is now the default
+  // No need to set useLegacyLights as it's deprecated
 
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
   const scene = document.querySelector('a-scene').object3D;

@@ -66,19 +66,19 @@
                       audioControls.style.display = 'block';
                     }
                   },
-                  onloaderror: function() {
-                    console.log('Audio file cannot be loaded');
+                  onloaderror: function(id, error) {
+                    console.log('Audio loading error:', error);
                   }
                 });
               } catch (error) {
                 console.log('Audio initialization failed:', error);
               }
             } else {
-              console.log('Audio file not found');
+              console.log('Background music is not available - this is optional and won\'t affect the AR experience');
             }
           })
           .catch(error => {
-            console.log('Error checking audio file:', error);
+            console.log('Background music is not available - this is optional and won\'t affect the AR experience');
           });
       }
 
@@ -330,7 +330,8 @@
       <!-- If you want to delay the start of MindAR, you can add "autoStart: false;" to the  mindar-image attribute, and you need to
        manually call document.querySelector('a-scene').systems['mindar-image-system'].start(); -->
       <a-scene
-        mindar-image="imageTargetSrc: ./targets.mind; uiLoading:no; uiScanning:no; autoStart: false;"
+        mindar-image="imageTargetSrc: ./targets.mind; uiLoading: false; uiScanning: false; autoStart: false;"
+        mindar-face="enabled: false"
         color-space="sRGB"
         embedded
         vr-mode-ui="enabled: false"

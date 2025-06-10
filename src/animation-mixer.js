@@ -1,4 +1,4 @@
-import { initializeLightingEnvironment } from './environment-mixer';
+import { initializeLightingEnvironment } from './environment-mixer.js';
 
 // This component is used to render the free scene that is not controlled by MindAR (see HTML).
 // Notice that this component uses a different renderer than the one used by MindAR.
