@@ -261,24 +261,67 @@
           
           // Start AR with explicit video constraints
           console.log('Starting AR system...');
-          await arSystem.start({
-            camera: {
+          
+          // Try to use the back camera first
+          const videoDevices = await navigator.mediaDevices.enumerateDevices();
+          const cameras = videoDevices.filter(device => device.kind === 'videoinput');
+          let selectedCamera = null;
+          
+          // Try to find a back/environment camera
+          for (const camera of cameras) {
+            if (camera.label.toLowerCase().includes('back') || 
+                camera.label.toLowerCase().includes('environment') ||
+                camera.label.toLowerCase().includes('rear')) {
+              selectedCamera = camera;
+              break;
+            }
+          }
+          
+          // If no back camera found, use the first available camera
+          if (!selectedCamera && cameras.length > 0) {
+            selectedCamera = cameras[0];
+          }
+
+          const constraints = {
+            audio: false,
+            video: {
               facingMode: 'environment',
               width: { ideal: 1280 },
               height: { ideal: 720 }
             }
-          });
+          };
+
+          // If we found a specific camera, use its deviceId
+          if (selectedCamera) {
+            constraints.video.deviceId = { exact: selectedCamera.deviceId };
+            console.log('Using camera:', selectedCamera.label);
+          }
+
+          await arSystem.start(constraints);
           console.log('AR started successfully');
           
           // Reset retry count for next time
           retryCount = 0;
+
+          // Add success handlers
+          sceneEl.addEventListener('targetFound', () => {
+            console.log('Target image found!');
+            // Show the model and icons when target is found
+            const model = document.querySelector('#card-front-model');
+            if (model) model.setAttribute('visible', true);
+          });
+
+          sceneEl.addEventListener('targetLost', () => {
+            console.log('Target image lost');
+          });
+
         } catch (error) {
           console.error('AR initialization error:', error);
           let errorMessage = error.message;
           
           // Customize error messages
           if (error.name === 'NotReadableError' || errorMessage.includes('Camera is being used')) {
-            alert(errorMessage);
+            alert('Camera access error. Please:\n1. Close other apps using your camera (Zoom, Teams, etc.)\n2. Close other browser tabs\n3. Try a different browser\n4. On mobile, try closing and reopening your browser\n5. Reload this page');
           } else if (error.name === 'NotAllowedError' || errorMessage.includes('denied')) {
             alert('Camera access was denied. Please:\n1. Click the camera icon in your browser\'s address bar\n2. Select "Allow" for camera access\n3. Reload this page');
           } else if (error.name === 'NotFoundError') {
@@ -359,9 +402,7 @@
       <!-- If you want to delay the start of MindAR, you can add "autoStart: false;" to the  mindar-image attribute, and you need to
        manually call document.querySelector('a-scene').systems['mindar-image-system'].start(); -->
       <a-scene
-        mindar-image="imageTargetSrc: ./targets.mind; uiLoading: false; uiScanning: false; autoStart: false;"
-        mindar-face="enabled: false"
-        color-space="sRGB"
+        mindar-image="imageTargetSrc: ./targets.mind; uiLoading: false; uiScanning: false; autoStart: false; maxTrack: 2"
         embedded
         loading-screen="enabled: false"
         stats="false"
@@ -373,23 +414,20 @@
         <!-- Add modern lighting -->
         <a-light type="ambient" intensity="0.5" color="#ffffff"></a-light>
         <a-light type="directional" intensity="1" position="1 1 1" color="#ffffff" cast-shadow="true"></a-light>
-        <!-- There will be an <canvas class="a-canvas"> element being generated as this level once the MindAR engine starts.
-          We name this canvas element as "MindAR Canvas", which is also the canvas used by this a-scene.
-          Note that -->
+
         <a-assets>
-          <!-- Here, you put the model resources that you are going to use later in the scene.
-           All later usage in the scene will be reference to these assets-->
+          <!-- Here, you put the model resources that you are going to use later in the scene -->
           <a-asset-item
             id="custom-model"
             src="./models/scene/robot_playground/scene.gltf"
-            onload="console.log('Model loaded successfully')"
-            onerror="console.error('Error loading model:', event)"
+            response-type="arraybuffer"
+            crossorigin="anonymous"
           ></a-asset-item>
-          <img id="linkedin-icon" src="./images/linkedin.png" />
-          <img id="email-icon" src="./images/gmail.png" />
-          <img id="portfolio-icon" src="./images/portfolio.png" />
+          <img id="linkedin-icon" src="./images/linkedin.png" crossorigin="anonymous" />
+          <img id="email-icon" src="./images/gmail.png" crossorigin="anonymous" />
+          <img id="portfolio-icon" src="./images/portfolio.png" crossorigin="anonymous" />
         </a-assets>
-        <!-- This is the camera used by MindAR to render content within this scene. -->
+
         <a-camera
           id="camera"
           position="0 0 0"
@@ -398,124 +436,62 @@
           raycaster="far: 10000; objects: .clickable"
           camera="active: true"
         ></a-camera>
-        <!-- This scene also gets automatically rendered in the canvas. However, it is out of MindAR's binding to image targets.
-         If needed, we can render it to our custom canvas scene.-->
-        <a-entity
-          id="free-scene"
-          position="0 0 0"
-          rotation="0 0 0"
-          free-scene-render
-        >
-          <a-entity id="card-back-moveable-root" position="0 0 -6">
-            <!-- At the beginning, we disable the visibility of this model.
-             In the code, if we want to render the transition from an image-tracked object to a freely-floating object,
-             we make the tracked model in the "card-front" <a-entity> element below invisible and make this object visible,
-              while applying the same transform onto this object, achieving the fluent transition from a tracked objet to a free object.-->
-            <a-gltf-model
-              src="#custom-model"
-              position="0 0.5 0"
-              rotation="-90 180 0"
-              scale="0.2 0.2 0.2"
-              shadow
-              id="mind-ar-model"
-              animation-mixer="clip: *; loop: repeat; timeScale: 1"
-              animation__float="property: position; dur: 2000; dir: alternate; easing: easeInOutQuad; loop: true; from: 0 0.5 0; to: 0 0.7 0"
-              visible="false"
-              onload="console.log('3D Model loaded successfully'); this.setAttribute('animation-mixer', {clip: '*', loop: 'repeat', timeScale: 1});"
-              onerror="console.error('Error loading 3D model:', this.error)"
-            ></a-gltf-model>
-          </a-entity>
-        </a-entity>
-        <a-entity
-          id="card-front"
-          mindar-image-target="targetIndex: 0"
-          animation-controller="component: card-front;"
-          audio-controller
-        >
-          <a-entity id="card-front-moveable-root">
-            <!-- Container for model and icons that will float together -->
-            <a-entity
-              id="floating-container"
-              position="0 0.5 0"
-              animation__float="property: position; dur: 2000; dir: alternate; easing: easeInOutQuad; loop: true; from: 0 0.5 0; to: 0 0.7 0"
-            >
-              <!-- 3D Model -->
-              <a-gltf-model
-                src="#custom-model"
-                position="0 0 0"
-                rotation="-90 180 0"
-                scale="0.2 0.2 0.2"
-                shadow
-                id="mind-ar-model"
-                animation-mixer="clip: *; loop: repeat; timeScale: 1"
-                onload="console.log('3D Model loaded successfully'); this.setAttribute('animation-mixer', {clip: '*', loop: 'repeat', timeScale: 1});"
-                onerror="console.error('Error loading 3D model:', this.error)"
-              ></a-gltf-model>
 
-              <!-- Social Links in a circle -->
-              <!-- LinkedIn Icon - Top -->
-              <a-image
-                src="#linkedin-icon"
-                position="0 0.3 0"
-                height="0.15"
-                width="0.15"
-                class="clickable"
-                opacity="0"
-                visible="false"
-                delayed-appearance
-                animation__orbit="property: rotation; dur: 30000; loop: true; to: 0 360 0;"
-                clickable
-                link-type="url"
-                link-url="https://www.linkedin.com/in/quyendoan51/"
-              ></a-image>
+        <!-- Target for front of card -->
+        <a-entity id="card-front-target" mindar-image-target="targetIndex: 0">
+          <!-- 3D model -->
+          <a-gltf-model
+            id="card-front-model"
+            rotation="-90 180 0"
+            position="0 0 0"
+            scale="0.2 0.2 0.2"
+            src="#custom-model"
+            animation="property: position; to: 0 0.1 0; dir: alternate; dur: 2000; loop: true;"
+            visible="true"
+          ></a-gltf-model>
 
-              <!-- Portfolio Icon - Bottom Right -->
-              <a-image
-                src="#portfolio-icon"
-                position="0.26 -0.15 0"
-                height="0.15"
-                width="0.15"
-                class="clickable"
-                opacity="0"
-                visible="false"
-                delayed-appearance
-                animation__orbit="property: rotation; dur: 30000; loop: true; to: 0 360 0;"
-                clickable
-                link-type="url"
-                link-url="https://quinxiedoan.xyz"
-              ></a-image>
+          <!-- Social media icons -->
+          <a-image
+            id="linkedin"
+            class="clickable"
+            src="#linkedin-icon"
+            position="-0.5 0 0"
+            height="0.3"
+            width="0.3"
+            link-url="https://www.linkedin.com/in/quyen-hoang-2bb5a4179/"
+            link-type="url"
+            animation="property: scale; to: 1.2 1.2 1.2; dir: alternate; dur: 1000; loop: true;"
+            visible="false"
+            delayed-appearance
+          ></a-image>
 
-              <!-- Email Icon - Bottom Left -->
-              <a-image
-                src="#email-icon"
-                position="-0.26 -0.15 0"
-                height="0.15"
-                width="0.15"
-                class="clickable"
-                opacity="0"
-                visible="false"
-                delayed-appearance
-                animation__orbit="property: rotation; dur: 30000; loop: true; to: 0 360 0;"
-                clickable
-                link-type="email"
-                link-url="mailto:quyendoan51@gmail.com"
-              ></a-image>
+          <a-image
+            id="portfolio"
+            class="clickable"
+            src="#portfolio-icon"
+            position="0 0 0"
+            height="0.3"
+            width="0.3"
+            link-url="https://quinxie51.github.io/Portfolio/"
+            link-type="url"
+            animation="property: scale; to: 1.2 1.2 1.2; dir: alternate; dur: 1000; loop: true;"
+            visible="false"
+            delayed-appearance
+          ></a-image>
 
-              <!-- Circular path for icons -->
-              <a-entity
-                id="icon-orbit"
-                animation__rotate="property: rotation; dur: 30000; loop: true; to: 0 360 0; easing: linear"
-              ></a-entity>
-            </a-entity>
-          </a-entity>
-        </a-entity>
-        <!-- MindAR supports image tracking of different images at the same time.
-         Just upload the two images in the same sequence as the index here on the online tool. -->
-        <a-entity
-          id="card-back"
-          mindar-image-target="targetIndex: 1"
-          animation-controller="component: card-back;"
-        >
+          <a-image
+            id="email"
+            class="clickable"
+            src="#email-icon"
+            position="0.5 0 0"
+            height="0.3"
+            width="0.3"
+            link-url="mailto:quyenhoang5197@gmail.com"
+            link-type="email"
+            animation="property: scale; to: 1.2 1.2 1.2; dir: alternate; dur: 1000; loop: true;"
+            visible="false"
+            delayed-appearance
+          ></a-image>
         </a-entity>
       </a-scene>
     </div>
