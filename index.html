@@ -155,17 +155,47 @@
 
       async function checkCamera() {
         try {
+          // First, explicitly request camera permission
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              facingMode: 'environment',
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            } 
+          });
+          
+          // Stop the stream immediately - we just needed it for permissions
+          stream.getTracks().forEach(track => track.stop());
+          
+          // Now check available devices
           const devices = await navigator.mediaDevices.enumerateDevices();
           const cameras = devices.filter(device => device.kind === 'videoinput');
-          console.log('Available cameras:', cameras.length);
+          console.log('Available cameras:', cameras);
           
           if (cameras.length === 0) {
             throw new Error('No cameras found');
           }
+          
+          // Log camera details to help debug
+          cameras.forEach((camera, index) => {
+            console.log(`Camera ${index}:`, {
+              name: camera.label,
+              id: camera.deviceId
+            });
+          });
+          
           return true;
         } catch (error) {
           console.error('Camera check failed:', error);
-          throw error;
+          if (error.name === 'NotAllowedError') {
+            throw new Error('Camera permission denied. Please allow camera access and reload the page.');
+          } else if (error.name === 'NotReadableError') {
+            throw new Error('Camera is in use by another application. Please close other apps using the camera and reload.');
+          } else if (error.name === 'NotFoundError') {
+            throw new Error('No camera found on your device.');
+          } else {
+            throw error;
+          }
         }
       }
 
@@ -197,6 +227,7 @@
 
       async function initializeAR() {
         try {
+          // Check camera before anything else
           await checkCamera();
           
           if (!sceneEl) {
@@ -228,18 +259,16 @@
           // Wait for AR system to be available
           arSystem = await waitForARSystem();
           
-          // Start AR
+          // Start AR with explicit video constraints
           console.log('Starting AR system...');
-          try {
-            await arSystem.start();
-            console.log('AR started successfully');
-          } catch (startError) {
-            if (startError.name === 'NotReadableError') {
-              throw new Error('Camera is being used by another application. Please:\n1. Close other apps using your camera (like Zoom, Teams, etc.)\n2. Close other browser tabs that might be using your camera\n3. If on mobile, try closing and reopening your browser\n4. Reload this page and try again');
-            } else {
-              throw startError;
+          await arSystem.start({
+            camera: {
+              facingMode: 'environment',
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
             }
-          }
+          });
+          console.log('AR started successfully');
           
           // Reset retry count for next time
           retryCount = 0;
@@ -250,7 +279,7 @@
           // Customize error messages
           if (error.name === 'NotReadableError' || errorMessage.includes('Camera is being used')) {
             alert(errorMessage);
-          } else if (error.name === 'NotAllowedError') {
+          } else if (error.name === 'NotAllowedError' || errorMessage.includes('denied')) {
             alert('Camera access was denied. Please:\n1. Click the camera icon in your browser\'s address bar\n2. Select "Allow" for camera access\n3. Reload this page');
           } else if (error.name === 'NotFoundError') {
             alert('No camera found. Please make sure your device has a working camera and reload the page.');
@@ -334,6 +363,8 @@
         mindar-face="enabled: false"
         color-space="sRGB"
         embedded
+        loading-screen="enabled: false"
+        stats="false"
         vr-mode-ui="enabled: false"
         device-orientation-permission-ui="enabled: false"
         renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true;"
@@ -365,6 +396,7 @@
           look-controls="enabled: false"
           cursor="fuse: false; rayOrigin: mouse;"
           raycaster="far: 10000; objects: .clickable"
+          camera="active: true"
         ></a-camera>
         <!-- This scene also gets automatically rendered in the canvas. However, it is out of MindAR's binding to image targets.
          If needed, we can render it to our custom canvas scene.-->
