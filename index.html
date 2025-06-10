@@ -152,10 +152,16 @@
         return new Promise((resolve, reject) => {
           const check = () => {
             console.log('Checking AR system...', retryCount);
-            arSystem = sceneEl.systems['mindar-image'];
+            // Log all available systems to help diagnose
+            if (sceneEl && sceneEl.systems) {
+              console.log('Available systems:', Object.keys(sceneEl.systems));
+            }
+            
+            // Try both system names
+            arSystem = sceneEl.systems['mindar-image'] || sceneEl.systems['mindar-image-system'];
             
             if (arSystem) {
-              console.log('AR system found');
+              console.log('AR system found:', arSystem);
               resolve(arSystem);
             } else if (retryCount < maxRetries) {
               retryCount++;
@@ -176,13 +182,25 @@
             throw new Error('Scene not ready');
           }
 
+          // Log scene state
+          console.log('Scene ready, checking components:', {
+            hasMindar: sceneEl.hasAttribute('mindar-image'),
+            mindarAttr: sceneEl.getAttribute('mindar-image'),
+            systems: Object.keys(sceneEl.systems)
+          });
+
           // Wait for all assets to load
           await new Promise((resolve) => {
             const assets = document.querySelector('a-assets');
             if (assets.hasLoaded) {
+              console.log('Assets already loaded');
               resolve();
             } else {
-              assets.addEventListener('loaded', resolve, { once: true });
+              console.log('Waiting for assets to load...');
+              assets.addEventListener('loaded', () => {
+                console.log('Assets loaded');
+                resolve();
+              }, { once: true });
             }
           });
 
@@ -190,6 +208,7 @@
           arSystem = await waitForARSystem();
           
           // Start AR
+          console.log('Starting AR system...');
           await arSystem.start();
           console.log('AR started successfully');
           
@@ -277,13 +296,12 @@
       <!-- If you want to delay the start of MindAR, you can add "autoStart: false;" to the  mindar-image attribute, and you need to
        manually call document.querySelector('a-scene').systems['mindar-image-system'].start(); -->
       <a-scene
-        mindar-image="imageTargetSrc: ./targets.mind; uiLoading:no; uiScanning:no;"
+        mindar-image="imageTargetSrc: ./targets.mind; uiLoading:no; uiScanning:no; autoStart: false;"
+        color-space="sRGB"
+        embedded
         vr-mode-ui="enabled: false"
         device-orientation-permission-ui="enabled: false"
-        xrextras-runtime-error
-        xrextras-gesture-detector
-        renderer="colorManagement:true; webgl2: true;"
-        xrweb="disableWorldTracking: false"
+        renderer="colorManagement:true; webgl2: true; antialias: true;"
         renderer-provider
       >
         <!-- Add lighting -->
