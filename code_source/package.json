@@ -8,7 +8,7 @@
     "dev": "vite",
     "start": "npm run dev",
     "preview": "vite preview",
-    "build": "vite build && (if exist \"../public\" rmdir /s /q \"../public\") && mkdir \"../public\" && xcopy /s /e /y \"dist\\*\" \"..\\public\\\"",
+    "build": "vite build",
     "lint": "DEBUG=eslint:cli-engine eslint src/",
     "lintf": "npm run lint -- --fix"
   }
