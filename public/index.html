@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
+    />
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-aframe.prod.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.1/howler.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Find nice fonts and icons on Google Fonts-->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rosarivo:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    
+    
+    <style>
+      /* Add this inside your head section */
+      .clickable {
+        cursor: pointer;
+      }
+      .clickable:hover {
+        transform: scale(1.1);
+      }
+    </style>
+    <script>
+      let bgMusic;
+
+      // Initialize background music
+      function initializeAudio() {
+        bgMusic = new Howl({
+          src: ['/audio/background-music.mp3'],
+          loop: true,
+          volume: 0.5,
+          autoplay: false
+        });
+      }
+
+      // Audio control component
+      AFRAME.registerComponent('audio-controller', {
+        init: function() {
+          // Initialize audio when component loads
+          initializeAudio();
+
+          // Play music when target is found
+          this.el.addEventListener('targetFound', () => {
+            if (bgMusic && !bgMusic.playing()) {
+              bgMusic.play();
+            }
+          });
+
+          // Optional: Pause music when target is lost
+          this.el.addEventListener('targetLost', () => {
+            if (bgMusic && bgMusic.playing()) {
+              bgMusic.fade(0.5, 0, 1000);
+              setTimeout(() => bgMusic.pause(), 1000);
+            }
+          });
+        }
+      });
+
+      // Add this inside your head section
+      AFRAME.registerComponent('clickable', {
+        init: function() {
+          // Add cursor hover visual feedback
+          this.el.addEventListener('mouseenter', () => {
+            this.el.setAttribute('scale', '1.2 1.2 1.2');
+          });
+          
+          this.el.addEventListener('mouseleave', () => {
+            this.el.setAttribute('scale', '1 1 1');
+          });
+
+          // Handle both touch and mouse interactions
+          this.el.addEventListener('click', (evt) => {
+            console.log('Clicked/Touched!');
+            const url = this.el.getAttribute('link-url');
+            const type = this.el.getAttribute('link-type');
+            
+            if (type === 'url') {
+              window.open(url, '_blank');
+            } else if (type === 'email') {
+              window.location.href = url;
+            }
+          });
+        }
+      });
+
+      // Add delayed appearance component
+      AFRAME.registerComponent('delayed-appearance', {
+        init: function() {
+          // Start with the element hidden
+          this.el.setAttribute('visible', false);
+          
+          // After 2 seconds, make it visible and start the fade in
+          setTimeout(() => {
+            this.el.setAttribute('visible', true);
+            this.el.setAttribute('animation__fade', {
+              property: 'opacity',
+              from: 0,
+              to: 1,
+              dur: 1000,
+              easing: 'easeInOutQuad'
+            });
+          }, 2000);
+        }
+      });
+    </script>
+    <title>Business Card</title>
+    <script type="module" crossorigin src="/assets/index-d01e92a6.js"></script>
+    <link rel="stylesheet" href="/assets/index-d4004ebb.css">
+  </head>
+  <body>
+    <div id="ar-display">
+      <!-- Add audio controls -->
+      <div id="audio-controls" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+        <button onclick="toggleMusic()" style="padding: 10px; border-radius: 50%; background: rgba(255,255,255,0.7); border: none; cursor: pointer;">
+          🔊
+        </button>
+      </div>
+      <!-- Real video that gets displayed on screen.
+       This canvas forwards MindAR's video stream from a static <video> element that is dynamically controlled by MindAR. -->
+      <canvas id="video-canvas"></canvas>
+      <!-- If we only use the original a-canvas from MindAR,
+        we will not be able to control the rendering logic of the 3D models attached to the scene.
+        Here, whatever being rendered on ar-effect-canvas will overlay on top of the MindAR effects.
+        With this, we can achieve the transition from an image-tracked object to a freely-floating object.-->
+      <canvas id="ar-effect-canvas"></canvas>
+    </div>
+    <div id="ar-scene">
+      <!-- Note that all relative paths inside this document has the root folder as the public/ folder inside code_source/ -->
+
+      <!--  We no longer use DRACO in our a-scene due to the
+        lagging of rendering transparency and real-time tracking.
+        We can reduce faces in our models, which is effective enough to remove DRACO.
+        gltf-model="dracoDecoderPath: /draco/" -->
+
+      <!-- This a-scene is the core of MindAR image tracking effects. MindAR inherently uses a merge of three.js and A-Frame.
+       It tracks the image targets encoded inside ./targets.mind
+       To compile the .mind files, use this tool here: https://hiukim.github.io/mind-ar-js-doc/tools/compile
+       This tool supports tracking of multiple images at the same time. To do that, upload multiple images at the same time and get a large
+       compiled .mind file as the target. Notice that the "mindar-image-target" treats targetIndex as the sequence in which you uploaded the targets.  -->
+      <!-- If you want to delay the start of MindAR, you can add "autoStart: false;" to the  mindar-image attribute, and you need to
+       manually call document.querySelector('a-scene').systems['mindar-image-system'].start(); -->
+      <a-scene
+        mindar-image="imageTargetSrc: ./targets.mind; uiLoading:no; uiScanning:no;"
+        vr-mode-ui="enabled: false"
+        device-orientation-permission-ui="enabled: false"
+        xrextras-runtime-error
+        xrextras-gesture-detector
+        renderer="colorManagement:true; webgl2: true;"
+        xrweb="disableWorldTracking: false"
+        renderer-provider
+      >
+        <!-- Add lighting -->
+        <a-light type="ambient" intensity="1"></a-light>
+        <a-light type="directional" intensity="0.6" position="1 1 1"></a-light>
+        <!-- There will be an <canvas class="a-canvas"> element being generated as this level once the MindAR engine starts.
+          We name this canvas element as "MindAR Canvas", which is also the canvas used by this a-scene.
+          Note that -->
+        <a-assets>
+          <!-- Here, you put the model resources that you are going to use later in the scene.
+           All later usage in the scene will be reference to these assets-->
+          <a-asset-item
+            id="custom-model"
+            src="/models/scene/robot_playground/scene.gltf"
+            onload="console.log('Model loaded successfully')"
+            onerror="console.error('Error loading model:', event)"
+          ></a-asset-item>
+          <img id="linkedin-icon" src="/images/linkedin.png" />
+          <img id="email-icon" src="/images/gmail.png" />
+          <img id="portfolio-icon" src="/images/portfolio.png" />
+          <!-- You can also add files by yourself. You don't have to provide a link. Just remember to put it in the code_source/public folder.-->
+          <!-- <a-asset-item
+            id="placeholder"
+            src="/custom_card_assets/PLACEHOLDER"
+          ></a-asset-item> -->
+        </a-assets>
+        <!-- This is the camera used by MindAR to render content within this scene. -->
+        <a-camera
+          id="camera"
+          position="0 0 0"
+          look-controls="enabled: false"
+          cursor="fuse: false; rayOrigin: mouse;"
+          raycaster="far: 10000; objects: .clickable"
+        ></a-camera>
+        <!-- This scene also gets automatically rendered in the canvas. However, it is out of MindAR's binding to image targets.
+         If needed, we can render it to our custom canvas scene.-->
+        <a-entity
+          id="free-scene"
+          position="0 0 0"
+          rotation="0 0 0"
+          free-scene-render
+        >
+          <a-entity id="card-back-moveable-root" position="0 0 -6">
+            <!-- At the beginning, we disable the visibility of this model.
+             In the code, if we want to render the transition from an image-tracked object to a freely-floating object,
+             we make the tracked model in the "card-front" <a-entity> element below invisible and make this object visible,
+              while applying the same transform onto this object, achieving the fluent transition from a tracked objet to a free object.-->
+            <a-gltf-model
+              src="#custom-model"
+              position="0 0.5 0"
+              rotation="-90 180 0"
+              scale="0.2 0.2 0.2"
+              shadow
+              id="mind-ar-model"
+              animation-mixer="clip: *; loop: repeat; timeScale: 1"
+              animation__float="property: position; dur: 2000; dir: alternate; easing: easeInOutQuad; loop: true; from: 0 0.5 0; to: 0 0.7 0"
+              visible="false"
+              onload="console.log('3D Model loaded successfully'); this.setAttribute('animation-mixer', {clip: '*', loop: 'repeat', timeScale: 1});"
+              onerror="console.error('Error loading 3D model:', this.error)"
+            ></a-gltf-model>
+            <!-- <a-light
+              id="ambient-light"
+              type="ambient"
+              color="yellow"
+              intensity="0.5"
+              position="0 0 0"
+            /> -->
+          </a-entity>
+        </a-entity>
+        <a-entity
+          id="card-front"
+          mindar-image-target="targetIndex: 0"
+          animation-controller="component: card-front;"
+          audio-controller
+        >
+          <!-- <a-light
+            type="point"
+            color="yellow"
+            intensity="10.0"
+            position="0 0 0.8"
+          ></a-light> -->
+          <a-entity id="card-front-moveable-root">
+            <!-- Container for model and icons that will float together -->
+            <a-entity
+              id="floating-container"
+              position="0 0.5 0"
+              animation__float="property: position; dur: 2000; dir: alternate; easing: easeInOutQuad; loop: true; from: 0 0.5 0; to: 0 0.7 0"
+            >
+              <!-- 3D Model -->
+            <a-gltf-model
+                src="#custom-model"
+                position="0 0 0"
+                rotation="-90 180 0"
+                scale="0.2 0.2 0.2"
+              shadow
+              id="mind-ar-model"
+                animation-mixer="clip: *; loop: repeat; timeScale: 1"
+                onload="console.log('3D Model loaded successfully'); this.setAttribute('animation-mixer', {clip: '*', loop: 'repeat', timeScale: 1});"
+                onerror="console.error('Error loading 3D model:', this.error)"
+            ></a-gltf-model>
+
+              <!-- Social Links in a circle -->
+              <!-- LinkedIn Icon - Top -->
+              <a-image
+                src="#linkedin-icon"
+                position="0 0.3 0"
+                height="0.15"
+                width="0.15"
+                class="clickable"
+                opacity="0"
+                visible="false"
+                delayed-appearance
+                animation__orbit="property: rotation; dur: 30000; loop: true; to: 0 360 0;"
+                clickable
+                link-type="url"
+                link-url="https://www.linkedin.com/in/quyendoan51/"
+              ></a-image>
+
+              <!-- Portfolio Icon - Bottom Right -->
+              <a-image
+                src="#portfolio-icon"
+                position="0.26 -0.15 0"
+                height="0.15"
+                width="0.15"
+                class="clickable"
+                opacity="0"
+                visible="false"
+                delayed-appearance
+                animation__orbit="property: rotation; dur: 30000; loop: true; to: 0 360 0;"
+                clickable
+                link-type="url"
+                link-url="https://quinxiedoan.xyz"
+              ></a-image>
+
+              <!-- Email Icon - Bottom Left -->
+              <a-image
+                src="#email-icon"
+                position="-0.26 -0.15 0"
+                height="0.15"
+                width="0.15"
+                class="clickable"
+                opacity="0"
+                visible="false"
+                delayed-appearance
+                animation__orbit="property: rotation; dur: 30000; loop: true; to: 0 360 0;"
+                clickable
+                link-type="email"
+                link-url="mailto:quyendoan51@gmail.com"
+              ></a-image>
+
+              <!-- Circular path for icons -->
+              <a-entity
+                id="icon-orbit"
+                animation__rotate="property: rotation; dur: 30000; loop: true; to: 0 360 0; easing: linear"
+              ></a-entity>
+            </a-entity>
+          </a-entity>
+        </a-entity>
+        <!-- MindAR supports image tracking of different images at the same time.
+         Just upload the two images in the same sequence as the index here on the online tool. -->
+        <a-entity
+          id="card-back"
+          mindar-image-target="targetIndex: 1"
+          animation-controller="component: card-back;"
+        >
+        </a-entity>
+      </a-scene>
+    </div>
+    <div id="ui-display">
+      <!-- Add any of your customized UIs. Note that this will cover the original scene.-->
+    </div>
+    <script>
+      // Add music control function
+      function toggleMusic() {
+        if (!bgMusic) return;
+        
+        const button = document.querySelector('#audio-controls button');
+        if (bgMusic.playing()) {
+          bgMusic.fade(0.5, 0, 500);
+          setTimeout(() => bgMusic.pause(), 500);
+          button.textContent = '🔈';
+        } else {
+          bgMusic.fade(0, 0.5, 500);
+          bgMusic.play();
+          button.textContent = '🔊';
+        }
+      }
+    </script>
+  </body>
+</html>

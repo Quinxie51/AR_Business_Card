@@ -10,7 +10,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      'three': 'three/build/three.module.js'
+      'three': 'three'
     }
   }
 })
