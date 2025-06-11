@@ -58,14 +58,6 @@
               bgMusic.play();
             }
           });
-
-          // Optional: Pause music when target is lost
-          this.el.addEventListener('targetLost', () => {
-            if (bgMusic && bgMusic.playing()) {
-              bgMusic.fade(0.5, 0, 1000);
-              setTimeout(() => bgMusic.pause(), 1000);
-            }
-          });
         }
       });
 
