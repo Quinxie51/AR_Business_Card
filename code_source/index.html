@@ -66,8 +66,10 @@
           this.el.addEventListener('targetFound', () => {
             if (bgMusic) {
               try {
-                // Stop any existing playback and reset to start
-                bgMusic.stop();
+                // If it's already playing, stop it first
+                if (bgMusic.playing()) {
+                  bgMusic.stop();
+                }
                 // Start playing from the beginning
                 bgMusic.play();
                 console.log('Audio playback started from beginning');
@@ -84,8 +86,10 @@
                 // Fade out and stop
                 bgMusic.fade(0.5, 0, 1000);
                 setTimeout(() => {
-                  bgMusic.stop(); // Use stop instead of pause to ensure it starts from beginning next time
-                  console.log('Audio playback stopped');
+                  if (bgMusic.playing()) {  // Only stop if it's still playing
+                    bgMusic.stop();
+                    console.log('Audio playback stopped');
+                  }
                 }, 1000);
               } catch (error) {
                 console.log('Could not stop audio:', error);
