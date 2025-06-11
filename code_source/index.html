@@ -56,19 +56,6 @@
         });
       }
 
-      // Function to toggle music
-      function toggleMusic() {
-        if (bgMusic) {
-          if (bgMusic.playing()) {
-            bgMusic.stop();
-            document.getElementById('audio-button').textContent = '🔊';
-          } else {
-            bgMusic.play();
-            document.getElementById('audio-button').textContent = '🔇';
-          }
-        }
-      }
-
       // Audio control component
       AFRAME.registerComponent('audio-controller', {
         init: function() {
@@ -85,12 +72,9 @@
                 }
                 // Start playing from the beginning
                 bgMusic.play();
-                document.getElementById('audio-button').textContent = '🔇';
                 console.log('Audio playback started from beginning');
               } catch (error) {
                 console.log('Could not play audio:', error);
-                // If autoplay is blocked, show the play button
-                document.getElementById('audio-button').textContent = '🔊';
               }
             }
           });
@@ -104,7 +88,6 @@
                 setTimeout(() => {
                   if (bgMusic.playing()) {  // Only stop if it's still playing
                     bgMusic.stop();
-                    document.getElementById('audio-button').textContent = '🔊';
                     console.log('Audio playback stopped');
                   }
                 }, 1000);
@@ -169,7 +152,7 @@
     <div id="ar-display">
       <!-- Add audio controls -->
       <div id="audio-controls" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
-        <button id="audio-button" onclick="toggleMusic()" style="padding: 15px; border-radius: 50%; background: rgba(255,255,255,0.7); border: none; cursor: pointer; font-size: 20px;">
+        <button onclick="toggleMusic()" style="padding: 10px; border-radius: 50%; background: rgba(255,255,255,0.7); border: none; cursor: pointer;">
           🔊
         </button>
       </div>
@@ -376,5 +359,22 @@
     <div id="ui-display">
       <!-- Add any of your customized UIs. Note that this will cover the original scene.-->
     </div>
+    <script>
+      // Add music control function
+      function toggleMusic() {
+        if (!bgMusic) return;
+        
+        const button = document.querySelector('#audio-controls button');
+        if (bgMusic.playing()) {
+          bgMusic.fade(0.5, 0, 500);
+          setTimeout(() => bgMusic.pause(), 500);
+          button.textContent = '🔈';
+        } else {
+          bgMusic.fade(0, 0.5, 500);
+          bgMusic.play();
+          button.textContent = '🔊';
+        }
+      }
+    </script>
   </body>
 </html>
