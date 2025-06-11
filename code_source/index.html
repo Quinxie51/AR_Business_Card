@@ -56,6 +56,31 @@
         border-radius: 3px;
         margin-bottom: 5px;
       }
+      #audio-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0,0,0,0.85);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        font-size: 1.5em;
+      }
+      #audio-overlay button {
+        margin-top: 24px;
+        font-size: 1.2em;
+        padding: 16px 32px;
+        border: none;
+        border-radius: 8px;
+        background: #4CAF50;
+        color: #fff;
+        cursor: pointer;
+      }
     </style>
     <script>
       let bgMusic;
@@ -91,6 +116,21 @@
         updateDebugPanel();
       }
 
+      // Show overlay on load
+      window.addEventListener('DOMContentLoaded', () => {
+        const overlay = document.getElementById('audio-overlay');
+        overlay.style.display = 'flex';
+      });
+
+      function enableAudioFromOverlay() {
+        debugLog('User tapped overlay - enabling audio');
+        hasInteracted = true;
+        if (bgMusic && !bgMusic.playing()) {
+          bgMusic.play();
+        }
+        document.getElementById('audio-overlay').style.display = 'none';
+      }
+
       // Initialize background music
       function initializeAudio() {
         debugLog('Initializing audio...');
@@ -102,11 +142,6 @@
           html5: true,
           onload: function() {
             debugLog('Audio loaded successfully');
-            if (!hasInteracted) {
-              debugLog('Attempting to play audio on load...');
-              bgMusic.play();
-              hasInteracted = true;
-            }
           },
           onloaderror: function(id, error) {
             debugLog('Error loading audio: ' + error);
@@ -134,27 +169,10 @@
 
           this.el.addEventListener('targetFound', () => {
             debugLog('Target found - attempting to play audio');
-            if (bgMusic && !bgMusic.playing()) {
+            if (bgMusic && !bgMusic.playing() && hasInteracted) {
               bgMusic.play();
-              hasInteracted = true;
             }
           });
-
-          document.addEventListener('touchstart', function() {
-            debugLog('Touch event detected - attempting to play audio');
-            if (bgMusic && !hasInteracted) {
-              bgMusic.play();
-              hasInteracted = true;
-            }
-          }, { once: true });
-
-          document.addEventListener('click', function() {
-            debugLog('Click event detected - attempting to play audio');
-            if (bgMusic && !hasInteracted) {
-              bgMusic.play();
-              hasInteracted = true;
-            }
-          }, { once: true });
         }
       });
 
@@ -211,7 +229,6 @@
           debugLog('No audio instance available');
           return;
         }
-        
         const button = document.querySelector('#audio-controls button');
         if (bgMusic.playing()) {
           debugLog('Pausing audio');
@@ -443,6 +460,11 @@
     </div>
     <div id="ui-display">
       <!-- Add any of your customized UIs. Note that this will cover the original scene.-->
+    </div>
+    <!-- Audio overlay for mobile user interaction -->
+    <div id="audio-overlay" style="display:none;">
+      <div>Tap to enable audio</div>
+      <button onclick="enableAudioFromOverlay()">Enable Audio</button>
     </div>
   </body>
 </html>
