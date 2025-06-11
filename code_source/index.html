@@ -85,36 +85,6 @@
     <script>
       let bgMusic;
       let hasInteracted = false;
-      let debugLogs = [];
-
-      // Debug logging function
-      function debugLog(message) {
-        const timestamp = new Date().toLocaleTimeString();
-        const logMessage = `[${timestamp}] ${message}`;
-        console.log(logMessage);
-        debugLogs.push(logMessage);
-        updateDebugPanel();
-      }
-
-      // Update debug panel
-      function updateDebugPanel() {
-        const panel = document.getElementById('debug-panel');
-        if (panel) {
-          panel.innerHTML = `
-            <button onclick="clearDebugLogs()">Clear Logs</button>
-            <div id="debug-content"></div>
-          `;
-          const content = document.getElementById('debug-content');
-          content.innerHTML = debugLogs.slice(-10).join('<br>');
-          content.scrollTop = content.scrollHeight;
-        }
-      }
-
-      // Clear debug logs
-      function clearDebugLogs() {
-        debugLogs = [];
-        updateDebugPanel();
-      }
 
       // Show overlay on load
       window.addEventListener('DOMContentLoaded', () => {
@@ -123,7 +93,6 @@
       });
 
       function enableAudioFromOverlay() {
-        debugLog('User tapped overlay - enabling audio');
         hasInteracted = true;
         if (bgMusic && !bgMusic.playing()) {
           bgMusic.play();
@@ -133,42 +102,21 @@
 
       // Initialize background music
       function initializeAudio() {
-        debugLog('Initializing audio...');
         bgMusic = new Howl({
           src: ['/audio/background-music.mp3'],
           loop: true,
           volume: 0.5,
           autoplay: false,
           html5: true,
-          onload: function() {
-            debugLog('Audio loaded successfully');
-          },
-          onloaderror: function(id, error) {
-            debugLog('Error loading audio: ' + error);
-          },
-          onplayerror: function(id, error) {
-            debugLog('Error playing audio: ' + error);
-          },
-          onplay: function() {
-            debugLog('Audio started playing');
-          },
-          onpause: function() {
-            debugLog('Audio paused');
-          },
-          onstop: function() {
-            debugLog('Audio stopped');
-          }
         });
       }
 
       // Audio control component
       AFRAME.registerComponent('audio-controller', {
         init: function() {
-          debugLog('Audio controller initialized');
           initializeAudio();
 
           this.el.addEventListener('targetFound', () => {
-            debugLog('Target found - attempting to play audio');
             if (bgMusic && !bgMusic.playing() && hasInteracted) {
               bgMusic.play();
             }
@@ -176,67 +124,16 @@
         }
       });
 
-      // Add this inside your head section
-      AFRAME.registerComponent('clickable', {
-        init: function() {
-          // Add cursor hover visual feedback
-          this.el.addEventListener('mouseenter', () => {
-            this.el.setAttribute('scale', '1.2 1.2 1.2');
-          });
-          
-          this.el.addEventListener('mouseleave', () => {
-            this.el.setAttribute('scale', '1 1 1');
-          });
-
-          // Handle both touch and mouse interactions
-          this.el.addEventListener('click', (evt) => {
-            console.log('Clicked/Touched!');
-            const url = this.el.getAttribute('link-url');
-            const type = this.el.getAttribute('link-type');
-            
-            if (type === 'url') {
-              window.open(url, '_blank');
-            } else if (type === 'email') {
-              window.location.href = url;
-            }
-          });
-        }
-      });
-
-      // Add delayed appearance component
-      AFRAME.registerComponent('delayed-appearance', {
-        init: function() {
-          // Start with the element hidden
-          this.el.setAttribute('visible', false);
-          
-          // After 2 seconds, make it visible and start the fade in
-          setTimeout(() => {
-            this.el.setAttribute('visible', true);
-            this.el.setAttribute('animation__fade', {
-              property: 'opacity',
-              from: 0,
-              to: 1,
-              dur: 1000,
-              easing: 'easeInOutQuad'
-            });
-          }, 2000);
-        }
-      });
-
       function toggleMusic() {
-        debugLog('Toggle music called');
         if (!bgMusic) {
-          debugLog('No audio instance available');
           return;
         }
         const button = document.querySelector('#audio-controls button');
         if (bgMusic.playing()) {
-          debugLog('Pausing audio');
           bgMusic.fade(0.5, 0, 500);
           setTimeout(() => bgMusic.pause(), 500);
           button.textContent = '🔈';
         } else {
-          debugLog('Playing audio');
           bgMusic.fade(0, 0.5, 500);
           bgMusic.play();
           button.textContent = '🔊';
@@ -246,11 +143,6 @@
     <title>Business Card</title>
   </head>
   <body>
-    <!-- Add debug panel -->
-    <div id="debug-panel">
-      <button onclick="clearDebugLogs()">Clear Logs</button>
-      <div id="debug-content"></div>
-    </div>
     <div id="ar-display">
       <!-- Add audio controls -->
       <div id="audio-controls" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
