@@ -35,6 +35,7 @@
     </style>
     <script>
       let bgMusic;
+      let hasInteracted = false;
 
       // Initialize background music
       function initializeAudio() {
@@ -42,7 +43,16 @@
           src: ['/audio/background-music.mp3'],
           loop: true,
           volume: 0.5,
-          autoplay: false
+          autoplay: false,
+          html5: true, // Force HTML5 Audio for better mobile support
+          onload: function() {
+            console.log('Audio loaded successfully');
+            // Try to play immediately on mobile
+            if (!hasInteracted) {
+              bgMusic.play();
+              hasInteracted = true;
+            }
+          }
         });
       }
 
@@ -55,9 +65,26 @@
           // Play music when target is found
           this.el.addEventListener('targetFound', () => {
             if (bgMusic && !bgMusic.playing()) {
+              // Force play on mobile
               bgMusic.play();
+              hasInteracted = true;
             }
           });
+
+          // Add touch/click event listener to document for mobile audio unlock
+          document.addEventListener('touchstart', function() {
+            if (bgMusic && !hasInteracted) {
+              bgMusic.play();
+              hasInteracted = true;
+            }
+          }, { once: true });
+
+          document.addEventListener('click', function() {
+            if (bgMusic && !hasInteracted) {
+              bgMusic.play();
+              hasInteracted = true;
+            }
+          }, { once: true });
         }
       });
 
