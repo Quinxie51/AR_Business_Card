@@ -8,4 +8,9 @@ export default defineConfig({
     host: true,
     port: 5500  // required by cors of the dev-env aws server
   },
+  resolve: {
+    alias: {
+      'three': 'three/build/three.module.js'
+    }
+  }
 })
