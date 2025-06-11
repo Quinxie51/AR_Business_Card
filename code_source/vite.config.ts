@@ -2,11 +2,21 @@ import { defineConfig } from 'vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.bin', '**/*.hdr', '**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.svg', '**/*.mp3', '**/*.mp4', '**/*.ico', '**/*.webm', '**/*.json'],
+  assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.bin', '**/*.hdr', '**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.svg', '**/*.mp3', '**/*.mp4', '**/*.ico', '**/*.webm', '**/*.json', '**/*.wav', '**/*.ogg'],
   plugins: [],
   server: {
     host: true,
     port: 5500  // required by cors of the dev-env aws server
+  },
+  publicDir: 'public',
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    rollupOptions: {
+      input: {
+        main: './index.html'
+      }
+    }
   },
   resolve: {
     alias: {
