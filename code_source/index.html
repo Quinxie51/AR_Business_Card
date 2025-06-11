@@ -32,26 +32,96 @@
       .clickable:hover {
         transform: scale(1.1);
       }
+      
+      /* Debug panel styles */
+      #debug-panel {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        max-width: 80%;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 9999;
+        font-size: 12px;
+      }
+      #debug-panel button {
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 3px;
+        margin-bottom: 5px;
+      }
     </style>
     <script>
       let bgMusic;
       let hasInteracted = false;
+      let debugLogs = [];
+
+      // Debug logging function
+      function debugLog(message) {
+        const timestamp = new Date().toLocaleTimeString();
+        const logMessage = `[${timestamp}] ${message}`;
+        console.log(logMessage);
+        debugLogs.push(logMessage);
+        updateDebugPanel();
+      }
+
+      // Update debug panel
+      function updateDebugPanel() {
+        const panel = document.getElementById('debug-panel');
+        if (panel) {
+          panel.innerHTML = `
+            <button onclick="clearDebugLogs()">Clear Logs</button>
+            <div id="debug-content"></div>
+          `;
+          const content = document.getElementById('debug-content');
+          content.innerHTML = debugLogs.slice(-10).join('<br>');
+          content.scrollTop = content.scrollHeight;
+        }
+      }
+
+      // Clear debug logs
+      function clearDebugLogs() {
+        debugLogs = [];
+        updateDebugPanel();
+      }
 
       // Initialize background music
       function initializeAudio() {
+        debugLog('Initializing audio...');
         bgMusic = new Howl({
           src: ['/audio/background-music.mp3'],
           loop: true,
           volume: 0.5,
           autoplay: false,
-          html5: true, // Force HTML5 Audio for better mobile support
+          html5: true,
           onload: function() {
-            console.log('Audio loaded successfully');
-            // Try to play immediately on mobile
+            debugLog('Audio loaded successfully');
             if (!hasInteracted) {
+              debugLog('Attempting to play audio on load...');
               bgMusic.play();
               hasInteracted = true;
             }
+          },
+          onloaderror: function(id, error) {
+            debugLog('Error loading audio: ' + error);
+          },
+          onplayerror: function(id, error) {
+            debugLog('Error playing audio: ' + error);
+          },
+          onplay: function() {
+            debugLog('Audio started playing');
+          },
+          onpause: function() {
+            debugLog('Audio paused');
+          },
+          onstop: function() {
+            debugLog('Audio stopped');
           }
         });
       }
@@ -59,20 +129,19 @@
       // Audio control component
       AFRAME.registerComponent('audio-controller', {
         init: function() {
-          // Initialize audio when component loads
+          debugLog('Audio controller initialized');
           initializeAudio();
 
-          // Play music when target is found
           this.el.addEventListener('targetFound', () => {
+            debugLog('Target found - attempting to play audio');
             if (bgMusic && !bgMusic.playing()) {
-              // Force play on mobile
               bgMusic.play();
               hasInteracted = true;
             }
           });
 
-          // Add touch/click event listener to document for mobile audio unlock
           document.addEventListener('touchstart', function() {
+            debugLog('Touch event detected - attempting to play audio');
             if (bgMusic && !hasInteracted) {
               bgMusic.play();
               hasInteracted = true;
@@ -80,6 +149,7 @@
           }, { once: true });
 
           document.addEventListener('click', function() {
+            debugLog('Click event detected - attempting to play audio');
             if (bgMusic && !hasInteracted) {
               bgMusic.play();
               hasInteracted = true;
@@ -134,10 +204,36 @@
           }, 2000);
         }
       });
+
+      function toggleMusic() {
+        debugLog('Toggle music called');
+        if (!bgMusic) {
+          debugLog('No audio instance available');
+          return;
+        }
+        
+        const button = document.querySelector('#audio-controls button');
+        if (bgMusic.playing()) {
+          debugLog('Pausing audio');
+          bgMusic.fade(0.5, 0, 500);
+          setTimeout(() => bgMusic.pause(), 500);
+          button.textContent = '🔈';
+        } else {
+          debugLog('Playing audio');
+          bgMusic.fade(0, 0.5, 500);
+          bgMusic.play();
+          button.textContent = '🔊';
+        }
+      }
     </script>
     <title>Business Card</title>
   </head>
   <body>
+    <!-- Add debug panel -->
+    <div id="debug-panel">
+      <button onclick="clearDebugLogs()">Clear Logs</button>
+      <div id="debug-content"></div>
+    </div>
     <div id="ar-display">
       <!-- Add audio controls -->
       <div id="audio-controls" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
@@ -348,22 +444,5 @@
     <div id="ui-display">
       <!-- Add any of your customized UIs. Note that this will cover the original scene.-->
     </div>
-    <script>
-      // Add music control function
-      function toggleMusic() {
-        if (!bgMusic) return;
-        
-        const button = document.querySelector('#audio-controls button');
-        if (bgMusic.playing()) {
-          bgMusic.fade(0.5, 0, 500);
-          setTimeout(() => bgMusic.pause(), 500);
-          button.textContent = '🔈';
-        } else {
-          bgMusic.fade(0, 0.5, 500);
-          bgMusic.play();
-          button.textContent = '🔊';
-        }
-      }
-    </script>
   </body>
 </html>
