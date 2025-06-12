@@ -237,7 +237,6 @@
               shadow
               id="mind-ar-model"
               animation-mixer="clip: *; loop: repeat; timeScale: 1"
-              animation__spin="property: rotation; to: 0 540 0; loop: true; dur: 4000; easing: linear"
               animation__float="property: position; dur: 2000; dir: alternate; easing: easeInOutQuad; loop: true; from: 0 0.5 0; to: 0 0.7 0"
               visible="false"
               onload="console.log('3D Model loaded successfully'); this.setAttribute('animation-mixer', {clip: '*', loop: 'repeat', timeScale: 1});"
@@ -280,7 +279,6 @@
                 shadow
                 id="mind-ar-model"
                 animation-mixer="clip: *; loop: repeat; timeScale: 1"
-                animation__spin="property: rotation; to: 0 540 0; loop: true; dur: 4000; easing: linear"
                 onload="console.log('3D Model loaded successfully'); this.setAttribute('animation-mixer', {clip: '*', loop: 'repeat', timeScale: 1});"
                 onerror="console.error('Error loading 3D model:', this.error)"
             ></a-gltf-model>
