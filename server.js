@@ -7,7 +7,8 @@ const os = require('os');
 
 const app = express();
 
-process.env.NODE_ENV = 'production';
+// Set NODE_ENV to development for local testing, production for deployment
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 if (process.env.NODE_ENV === 'production') {
   app.use((req, res, next) => {

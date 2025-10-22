@@ -24,6 +24,47 @@
     />
     <script type="module" crossorigin src="./index.js"></script>
     <link rel="stylesheet" href="./index.css" />
+    
+    <!-- Debug script to help troubleshoot AR issues -->
+    <script>
+      // Debug MindAR initialization
+      window.addEventListener('load', () => {
+        console.log('Page loaded, checking MindAR setup...');
+        
+        setTimeout(() => {
+          const sceneEl = document.querySelector('a-scene');
+          if (sceneEl) {
+            console.log('A-Scene found:', sceneEl);
+            console.log('MindAR attributes:', sceneEl.getAttribute('mindar-image'));
+            
+            // Check if MindAR system exists
+            const arSystem = sceneEl.systems['mindar-image-system'];
+            if (arSystem) {
+              console.log('MindAR system found:', arSystem);
+              console.log('MindAR system state:', arSystem.el.sceneEl.isPlaying);
+            } else {
+              console.error('MindAR system not found!');
+            }
+            
+            // Check for target elements
+            const targets = document.querySelectorAll('[mindar-image-target]');
+            console.log('Found target elements:', targets.length);
+            targets.forEach((target, index) => {
+              console.log(`Target ${index}:`, target.id, target.getAttribute('mindar-image-target'));
+            });
+            
+            // Check for model elements
+            const models = document.querySelectorAll('a-gltf-model');
+            console.log('Found model elements:', models.length);
+            models.forEach((model, index) => {
+              console.log(`Model ${index}:`, model.id, model.getAttribute('src'));
+            });
+          } else {
+            console.error('A-Scene not found!');
+          }
+        }, 2000);
+      });
+    </script>
     <style>
       /* Add this inside your head section */
       .clickable {
