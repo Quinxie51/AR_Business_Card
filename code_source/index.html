@@ -27,8 +27,57 @@
     
     <!-- Debug script to help troubleshoot AR issues -->
     <script>
+      // WebGL Detection and Browser Info
+      function checkWebGLSupport() {
+        console.log('=== WebGL & Browser Compatibility Check ===');
+        console.log('User Agent:', navigator.userAgent);
+        console.log('Browser:', getBrowserName());
+        
+        // Check WebGL support
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        
+        if (gl) {
+          console.log('✅ WebGL is supported');
+          console.log('WebGL Version:', gl.getParameter(gl.VERSION));
+          console.log('WebGL Vendor:', gl.getParameter(gl.VENDOR));
+          console.log('WebGL Renderer:', gl.getParameter(gl.RENDERER));
+        } else {
+          console.error('❌ WebGL is NOT supported on this device/browser');
+          console.log('This could be due to:');
+          console.log('- Outdated graphics drivers');
+          console.log('- Hardware acceleration disabled');
+          console.log('- Browser security settings');
+          console.log('- Incompatible browser version');
+        }
+        
+        // Check WebGL2 support
+        const gl2 = canvas.getContext('webgl2');
+        if (gl2) {
+          console.log('✅ WebGL2 is supported');
+        } else {
+          console.log('⚠️ WebGL2 is not supported (falling back to WebGL1)');
+        }
+        
+        // Check if we're on HTTPS
+        console.log('Protocol:', window.location.protocol);
+        if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+          console.warn('⚠️ AR features require HTTPS in production');
+        }
+      }
+      
+      function getBrowserName() {
+        const userAgent = navigator.userAgent;
+        if (userAgent.includes('Chrome')) return 'Chrome';
+        if (userAgent.includes('Firefox')) return 'Firefox';
+        if (userAgent.includes('Safari')) return 'Safari';
+        if (userAgent.includes('Edge')) return 'Edge';
+        return 'Unknown';
+      }
+      
       // Debug MindAR initialization
       window.addEventListener('load', () => {
+        checkWebGLSupport();
         console.log('Page loaded, checking MindAR setup...');
         
         setTimeout(() => {
@@ -216,12 +265,12 @@
       <!-- If you want to delay the start of MindAR, you can add "autoStart: false;" to the  mindar-image attribute, and you need to
        manually call document.querySelector('a-scene').systems['mindar-image-system'].start(); -->
       <a-scene
-        mindar-image="imageTargetSrc: ./targets.mind; uiLoading:no; uiScanning:no;"
+        mindar-image="imageTargetSrc: ./targets.mind; uiLoading:no; uiScanning:no; maxTrack: 2; uiError:no;"
         vr-mode-ui="enabled: false"
         device-orientation-permission-ui="enabled: false"
         xrextras-runtime-error
         xrextras-gesture-detector
-        renderer="colorManagement:true; webgl2: true;"
+        renderer="colorManagement:true; webgl2: false; antialias: false;"
         xrweb="disableWorldTracking: false"
         renderer-provider
       >
