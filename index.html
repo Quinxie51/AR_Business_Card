@@ -210,17 +210,20 @@
               console.log('Available systems:', Object.keys(sceneEl.systems));
             }
             
-            // Try both system names
-            arSystem = sceneEl.systems['mindar-image'] || sceneEl.systems['mindar-image-system'];
+            // Use the correct system name for MindAR 1.2.5
+            arSystem = sceneEl.systems['mindar-image-system'];
             
-            if (arSystem) {
-              console.log('AR system found:', arSystem);
+            // Check if system exists and has required methods
+            if (arSystem && typeof arSystem.start === 'function') {
+              console.log('AR system found and ready:', arSystem);
               resolve(arSystem);
             } else if (retryCount < maxRetries) {
               retryCount++;
+              console.log(`AR system not ready, retrying in ${retryDelay}ms... (attempt ${retryCount}/${maxRetries})`);
               setTimeout(check, retryDelay);
             } else {
-              reject(new Error('AR system initialization timeout'));
+              const availableSystems = sceneEl && sceneEl.systems ? Object.keys(sceneEl.systems) : [];
+              reject(new Error(`AR system initialization timeout. Available systems: ${availableSystems.join(', ')}`));
             }
           };
           check();
@@ -242,6 +245,11 @@
             mindarAttr: sceneEl.getAttribute('mindar-image'),
             systems: Object.keys(sceneEl.systems)
           });
+
+          // Ensure the MindAR system is properly initialized
+          if (!sceneEl.systems['mindar-image-system']) {
+            throw new Error('MindAR system not found. Please ensure MindAR library is properly loaded.');
+          }
 
           // Wait for all assets to load
           await new Promise((resolve) => {
@@ -299,8 +307,25 @@
             console.log('Using camera:', selectedCamera.label);
           }
 
-          await arSystem.start(constraints);
-          console.log('AR started successfully');
+          // Add error handling for system start
+          try {
+            // Validate that the system has all required methods before starting
+            if (!arSystem.start || typeof arSystem.start !== 'function') {
+              throw new Error('AR system start method not available');
+            }
+            
+            await arSystem.start(constraints);
+            console.log('AR started successfully');
+          } catch (startError) {
+            console.error('Failed to start AR system:', startError);
+            
+            // Provide more specific error messages
+            if (startError.message.includes('get')) {
+              throw new Error('MindAR system initialization failed. This might be due to browser compatibility issues or missing dependencies. Please try refreshing the page or using a different browser.');
+            } else {
+              throw new Error('Failed to start AR system: ' + startError.message);
+            }
+          }
           
           // Reset retry count for next time
           retryCount = 0;
@@ -366,6 +391,15 @@
         // Log any AR-related errors
         sceneEl.addEventListener('arError', (error) => {
           console.error('AR Error:', error);
+        });
+
+        // Add global error handler for MindAR
+        window.addEventListener('error', (event) => {
+          if (event.error && event.error.message && event.error.message.includes('get')) {
+            console.error('MindAR initialization error detected:', event.error);
+            // Provide user-friendly error message
+            alert('AR initialization error detected. Please refresh the page and try again. If the problem persists, try using a different browser.');
+          }
         });
       });
     </script>

@@ -36,6 +36,12 @@ window.addEventListener('resize', () => {
     const sceneEl = document.querySelector('a-scene');
     const arSystem = sceneEl.systems['mindar-image-system'];
     
+    // Add error handling for system access
+    if (!arSystem) {
+      console.error('MindAR system not found');
+      return;
+    }
+    
     // Only restart if the system exists and is running
     if (arSystem && arSystem.el.sceneEl.isPlaying) {
       arSystem.stop(); // Stop the system
