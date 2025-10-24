@@ -45,10 +45,10 @@
         gap: 16px;
         justify-content: center;
         margin-top: 20px;
-        padding: 20px;
-        background: linear-gradient(135deg, #0D4B9E 0%, #A9C7E8 100%);
-        border-radius: 20px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        padding: 0;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
       }
 
       /* Website Button */
@@ -127,16 +127,16 @@
       /* Responsive design */
       @media (max-width: 768px) {
         .buttons {
-          flex-direction: column;
-          gap: 12px;
-          padding: 16px;
+          flex-direction: row;
+          gap: 8px;
+          padding: 0;
         }
         
         button.website,
         button.linkedin,
         button.email {
-          padding: 12px 20px;
-          font-size: 13px;
+          padding: 8px 16px;
+          font-size: 12px;
         }
       }
     </style>
