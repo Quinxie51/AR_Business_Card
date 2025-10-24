@@ -112,6 +112,22 @@
             console.error('A-Scene not found!');
           }
         }, 2000);
+
+        // Add global target event listeners for buttons
+        setTimeout(() => {
+          const sceneEl = document.querySelector('a-scene');
+          if (sceneEl) {
+            sceneEl.addEventListener('targetFound', () => {
+              console.log('Target found - showing buttons');
+              showContactButtons();
+            });
+
+            sceneEl.addEventListener('targetLost', () => {
+              console.log('Target lost - hiding buttons');
+              hideContactButtons();
+            });
+          }
+        }, 3000);
       });
 
       // Contact button functions
@@ -143,6 +159,15 @@
           buttons.style.display = 'none';
         }
       }
+
+      // Test function to manually show buttons (for debugging)
+      function testButtons() {
+        console.log('Testing button visibility...');
+        showContactButtons();
+      }
+
+      // Make test function globally available
+      window.testButtons = testButtons;
     </script>
     <style>
       /* Add this inside your head section */
@@ -344,6 +369,13 @@
             if (bgMusic && !bgMusic.playing() && hasInteracted) {
               bgMusic.play();
             }
+            // Show contact buttons when target is found
+            showContactButtons();
+          });
+
+          this.el.addEventListener('targetLost', () => {
+            // Hide contact buttons when target is lost
+            hideContactButtons();
           });
         }
       });
@@ -589,5 +621,10 @@
       <button class="linkedin" onclick="openLinkedIn()">Connect on LinkedIn</button>
       <button class="email" onclick="openEmail()">Say Hello</button>
     </div>
+
+    <!-- Test Button (for debugging) -->
+    <button onclick="testButtons()" style="position: fixed; top: 10px; left: 10px; z-index: 1000; padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+      Test Buttons
+    </button>
   </body>
 </html>
