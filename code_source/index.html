@@ -168,21 +168,66 @@
         window.location.href = 'mailto:quyenhoang5197@gmail.com';
       }
 
-      // Show buttons when target is found
+      // Show buttons when target is found and make them follow the card
       function showContactButtons() {
         const buttons = document.getElementById('contact-buttons');
         if (buttons) {
           buttons.style.display = 'flex';
           buttons.style.position = 'fixed';
-          buttons.style.bottom = '20px';
-          buttons.style.left = '50%';
-          buttons.style.transform = 'translateX(-50%)';
           buttons.style.zIndex = '1000';
           buttons.style.animation = 'fadeInUp 0.6s ease-out';
           console.log('2D contact buttons are now visible');
+          
+          // Start tracking the AR card position
+          startTrackingCardPosition();
         } else {
           console.error('Contact buttons element not found!');
         }
+      }
+      
+      // Function to track AR card position and update button position
+      function startTrackingCardPosition() {
+        const scene = document.querySelector('a-scene');
+        const buttons = document.getElementById('contact-buttons');
+        
+        function updateButtonPosition() {
+          // Get the AR target entity
+          const cardFront = document.querySelector('#card-front');
+          if (cardFront && buttons && buttons.style.display !== 'none') {
+            // Get the object3D position
+            const object3D = cardFront.object3D;
+            if (object3D) {
+              // Convert 3D position to screen coordinates
+              const camera = scene.camera;
+              const vector = new THREE.Vector3();
+              
+              // Get world position
+              object3D.getWorldPosition(vector);
+              
+              // Project to screen coordinates
+              vector.project(camera);
+              
+              // Convert to screen pixels
+              const widthHalf = window.innerWidth / 2;
+              const heightHalf = window.innerHeight / 2;
+              
+              const x = (vector.x * widthHalf) + widthHalf;
+              const y = -(vector.y * heightHalf) + heightHalf;
+              
+              // Position buttons below the card
+              buttons.style.left = x + 'px';
+              buttons.style.top = (y + 100) + 'px'; // 100px below the card
+              buttons.style.transform = 'translateX(-50%)';
+              buttons.style.bottom = 'auto';
+            }
+          }
+        }
+        
+        // Update button position every frame
+        const trackingInterval = setInterval(updateButtonPosition, 100);
+        
+        // Store interval ID for cleanup
+        window.buttonTrackingInterval = trackingInterval;
       }
 
       // Hide buttons when target is lost
@@ -191,6 +236,12 @@
         if (buttons) {
           buttons.style.display = 'none';
           console.log('2D contact buttons hidden');
+          
+          // Stop tracking the AR card position
+          if (window.buttonTrackingInterval) {
+            clearInterval(window.buttonTrackingInterval);
+            window.buttonTrackingInterval = null;
+          }
         }
       }
 
