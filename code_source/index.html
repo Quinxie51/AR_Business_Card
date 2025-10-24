@@ -450,8 +450,7 @@
              // Show contact buttons when target is found
              showContactButtons();
              
-             // Play video when target is found - TEMPORARILY DISABLED
-             /*
+             // Play video when target is found
              const video = document.querySelector('#ar-video');
              if (video) {
                video.setAttribute('visible', true);
@@ -463,15 +462,13 @@
                  console.log('Could not play video:', error);
                }
              }
-             */
            });
 
            this.el.addEventListener('targetLost', () => {
              // Hide contact buttons when target is lost
              hideContactButtons();
              
-             // Pause video when target is lost - TEMPORARILY DISABLED
-             /*
+             // Pause video when target is lost
              const video = document.querySelector('#ar-video');
              if (video) {
                video.pause();
@@ -479,7 +476,6 @@
                video.setAttribute('opacity', 0);
                console.log('AR video paused');
              }
-             */
            });
          }
        });
@@ -541,8 +537,7 @@
           <img id="email-icon" src="/images/gmail.png" />
           <img id="portfolio-icon" src="/images/portfolio.png" />
           
-          <!-- Video asset for AR tracking - TEMPORARILY DISABLED -->
-          <!--
+          <!-- Video asset for AR tracking -->
           <video
             id="promo-video"
             src="/videos/0km.mp4"
@@ -554,7 +549,6 @@
             onload="console.log('Video loaded successfully')"
             onerror="console.log('Video file not found - this is optional. Place your video in /videos/0km.mp4')"
           ></video>
-          -->
           
           <!-- You can also add files by yourself. You don't have to provide a link. Just remember to put it in the code_source/public folder.-->
           <!-- <a-asset-item
@@ -637,8 +631,7 @@
                  onerror="console.error('Error loading 3D model:', this.error)"
              ></a-gltf-model>
 
-               <!-- Video element for AR tracking - TEMPORARILY DISABLED -->
-               <!--
+               <!-- Video element for AR tracking -->
                <a-video
                  src="#promo-video"
                  position="0.8 0 0.1"
@@ -651,7 +644,6 @@
                  onload="console.log('AR Video loaded successfully')"
                  onerror="console.error('Error loading AR video:', this.error)"
                ></a-video>
-               -->
 
                <!-- 2D buttons will be positioned via JavaScript to follow the card -->
 
