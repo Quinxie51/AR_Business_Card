@@ -35,6 +35,110 @@
       .clickable:hover {
         transform: scale(1.1);
       }
+
+      /* Import Poppins font */
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+      /* Button container */
+      .buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 20px;
+        padding: 20px;
+        background: linear-gradient(135deg, #0D4B9E 0%, #A9C7E8 100%);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Website Button */
+      button.website {
+        background: transparent;
+        border: 1.5px solid white;
+        color: white;
+        padding: 10px 24px;
+        border-radius: 30px;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 500;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      button.website:hover {
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+      }
+
+      /* LinkedIn Button */
+      button.linkedin {
+        background: linear-gradient(90deg, #6BA3E8, #1C4CA3);
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 30px;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 500;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      button.linkedin:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 12px rgba(173, 216, 255, 0.5);
+      }
+
+      /* Email Button */
+      button.email {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid white;
+        color: white;
+        padding: 10px 24px;
+        border-radius: 30px;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        transition: background 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      button.email:hover {
+        background: rgba(255, 255, 255, 0.25);
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+      }
+
+      /* Animation for button appearance */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Responsive design */
+      @media (max-width: 768px) {
+        .buttons {
+          flex-direction: column;
+          gap: 12px;
+          padding: 16px;
+        }
+        
+        button.website,
+        button.linkedin,
+        button.email {
+          padding: 12px 20px;
+          font-size: 13px;
+        }
+      }
     </style>
     <script>
       let bgMusic;
@@ -336,10 +440,15 @@
             // Show the model and icons when target is found
             const model = document.querySelector('#card-front-model');
             if (model) model.setAttribute('visible', true);
+            
+            // Show contact buttons
+            showContactButtons();
           });
 
           sceneEl.addEventListener('targetLost', () => {
             console.log('Target image lost');
+            // Hide contact buttons
+            hideContactButtons();
           });
 
         } catch (error) {
@@ -382,10 +491,12 @@
         // Add target tracking events
         sceneEl.addEventListener('targetFound', () => {
           console.log('Target image found');
+          showContactButtons();
         });
 
         sceneEl.addEventListener('targetLost', () => {
           console.log('Target image lost');
+          hideContactButtons();
         });
 
         // Log any AR-related errors
@@ -533,6 +644,13 @@
     </div>
     <div id="ui-display">
       <!-- Add any of your customized UIs. Note that this will cover the original scene.-->
+      
+      <!-- Beautiful Contact Buttons -->
+      <div class="buttons" id="contact-buttons" style="display: none;">
+        <button class="website" onclick="openWebsite()">Visit Portfolio</button>
+        <button class="linkedin" onclick="openLinkedIn()">Connect on LinkedIn</button>
+        <button class="email" onclick="openEmail()">Say Hello</button>
+      </div>
     </div>
     <script>
       // Add music control function
@@ -548,6 +666,36 @@
           bgMusic.fade(0, 0.5, 500);
           bgMusic.play();
           button.textContent = '🔊';
+        }
+      }
+
+      // Contact button functions
+      function openWebsite() {
+        window.open('https://quinxie51.github.io/Portfolio/', '_blank');
+      }
+
+      function openLinkedIn() {
+        window.open('https://www.linkedin.com/in/quyen-hoang-2bb5a4179/', '_blank');
+      }
+
+      function openEmail() {
+        window.location.href = 'mailto:quyenhoang5197@gmail.com';
+      }
+
+      // Show buttons when target is found
+      function showContactButtons() {
+        const buttons = document.getElementById('contact-buttons');
+        if (buttons) {
+          buttons.style.display = 'flex';
+          buttons.style.animation = 'fadeInUp 0.6s ease-out';
+        }
+      }
+
+      // Hide buttons when target is lost
+      function hideContactButtons() {
+        const buttons = document.getElementById('contact-buttons');
+        if (buttons) {
+          buttons.style.display = 'none';
         }
       }
     </script>
