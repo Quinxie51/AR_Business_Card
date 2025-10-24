@@ -604,7 +604,9 @@
               shadow
               id="mind-ar-model"
               animation-mixer="clip: *; loop: repeat; timeScale: 1"
-              animation__float="property: position; dur: 2000; dir: alternate; easing: easeInOutQuad; loop: true; from: 0 0.5 0; to: 0 0.7 0"
+              animation__float="property: position; dur: 3000; dir: alternate; easing: easeInOutQuad; loop: true; from: 0 0.5 0; to: 0 0.7 0"
+              animation__rotate="property: rotation; dur: 8000; loop: true; to: 0 360 0; easing: linear"
+              animation__sway="property: position; dur: 4000; dir: alternate; easing: easeInOutSine; loop: true; from: 0 0.6 0; to: 0.3 0.6 0"
               visible="false"
               onload="console.log('3D Model loaded successfully'); this.setAttribute('animation-mixer', {clip: '*', loop: 'repeat', timeScale: 1});"
               onerror="console.error('Error loading 3D model:', this.error)"
@@ -635,7 +637,8 @@
             <a-entity
               id="floating-container"
               position="0 0.5 0.1"
-              animation__float="property: position; dur: 2000; dir: alternate; easing: easeInOutQuad; loop: true; from: 0 0.5 0; to: 0 0.7 0"
+              animation__float="property: position; dur: 3000; dir: alternate; easing: easeInOutQuad; loop: true; from: 0 0.5 0; to: 0 0.7 0"
+              animation__circle="property: rotation; dur: 10000; loop: true; to: 0 360 0; easing: linear"
             >
               <!-- 3D Model -->
             <a-gltf-model
@@ -646,6 +649,8 @@
                 shadow
                 id="mind-ar-model"
                 animation-mixer="clip: *; loop: repeat; timeScale: 1"
+                animation__gentle-rotate="property: rotation; dur: 6000; dir: alternate; easing: easeInOutSine; loop: true; from: 0 0 0; to: 0 15 0"
+                animation__flutter="property: position; dur: 1500; dir: alternate; easing: easeInOutQuad; loop: true; from: 0 0 0.1; to: 0 0.1 0.1"
                 onload="console.log('3D Model loaded successfully'); this.setAttribute('animation-mixer', {clip: '*', loop: 'repeat', timeScale: 1});"
                 onerror="console.error('Error loading 3D model:', this.error)"
             ></a-gltf-model>
