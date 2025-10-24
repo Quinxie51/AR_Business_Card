@@ -464,17 +464,28 @@
               const x = (vector.x * widthHalf) + widthHalf;
               const y = -(vector.y * heightHalf) + heightHalf;
               
-              // Position buttons below the card
+              // Position buttons directly below the tracked image
+              // Calculate the bottom edge of the image and place buttons below it
+              const imageHeight = 200; // Approximate height of the tracked image in pixels
+              const buttonOffset = 20; // Small gap between image and buttons
+              
               buttons.style.left = x + 'px';
-              buttons.style.top = (y + 100) + 'px'; // 100px below the card
+              buttons.style.top = (y + (imageHeight / 2) + buttonOffset) + 'px';
               buttons.style.transform = 'translateX(-50%)';
               buttons.style.bottom = 'auto';
+              
+              // Only show buttons if the image is visible on screen
+              if (vector.z < 1 && vector.x >= -1 && vector.x <= 1 && vector.y >= -1 && vector.y <= 1) {
+                buttons.style.display = 'flex';
+              } else {
+                buttons.style.display = 'none';
+              }
             }
           }
         }
         
-        // Update button position every frame
-        const trackingInterval = setInterval(updateButtonPosition, 100);
+        // Update button position every frame for smooth tracking
+        const trackingInterval = setInterval(updateButtonPosition, 50); // Increased frequency for smoother tracking
         
         // Store interval ID for cleanup
         window.buttonTrackingInterval = trackingInterval;
