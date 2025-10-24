@@ -118,16 +118,41 @@
           const sceneEl = document.querySelector('a-scene');
           if (sceneEl) {
             sceneEl.addEventListener('targetFound', () => {
-              console.log('Target found - showing buttons');
+              console.log('🎯 Target found - showing buttons');
               showContactButtons();
             });
 
             sceneEl.addEventListener('targetLost', () => {
-              console.log('Target lost - hiding buttons');
+              console.log('❌ Target lost - hiding buttons');
               hideContactButtons();
             });
+
+            // Also add listeners to specific target elements
+            const cardFront = document.getElementById('card-front');
+            if (cardFront) {
+              cardFront.addEventListener('targetFound', () => {
+                console.log('🎯 Card-front target found - showing buttons');
+                showContactButtons();
+              });
+
+              cardFront.addEventListener('targetLost', () => {
+                console.log('❌ Card-front target lost - hiding buttons');
+                hideContactButtons();
+              });
+            }
           }
         }, 3000);
+
+        // Check if buttons element exists
+        setTimeout(() => {
+          const buttons = document.getElementById('contact-buttons');
+          console.log('Buttons element check:', buttons);
+          if (buttons) {
+            console.log('✅ Buttons element found in DOM');
+          } else {
+            console.error('❌ Buttons element NOT found in DOM');
+          }
+        }, 1000);
       });
 
       // Contact button functions
@@ -148,7 +173,15 @@
         const buttons = document.getElementById('contact-buttons');
         if (buttons) {
           buttons.style.display = 'flex';
+          buttons.style.position = 'fixed';
+          buttons.style.bottom = '20px';
+          buttons.style.left = '50%';
+          buttons.style.transform = 'translateX(-50%)';
+          buttons.style.zIndex = '1000';
           buttons.style.animation = 'fadeInUp 0.6s ease-out';
+          console.log('Contact buttons should now be visible');
+        } else {
+          console.error('Contact buttons element not found!');
         }
       }
 
@@ -163,11 +196,26 @@
       // Test function to manually show buttons (for debugging)
       function testButtons() {
         console.log('Testing button visibility...');
-        showContactButtons();
+        const buttons = document.getElementById('contact-buttons');
+        console.log('Buttons element:', buttons);
+        if (buttons) {
+          console.log('Button styles:', window.getComputedStyle(buttons));
+          buttons.style.display = 'flex';
+          buttons.style.position = 'fixed';
+          buttons.style.bottom = '20px';
+          buttons.style.left = '50%';
+          buttons.style.transform = 'translateX(-50%)';
+          buttons.style.zIndex = '1000';
+          console.log('Buttons should now be visible');
+        } else {
+          console.error('Buttons element not found!');
+        }
       }
 
       // Make test function globally available
       window.testButtons = testButtons;
+      window.showButtons = showContactButtons;
+      window.hideButtons = hideContactButtons;
     </script>
     <style>
       /* Add this inside your head section */
@@ -616,7 +664,7 @@
     </div>
 
     <!-- Beautiful Contact Buttons -->
-    <div class="buttons" id="contact-buttons" style="display: none;">
+    <div class="buttons" id="contact-buttons" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;">
       <button class="website" onclick="openWebsite()">Visit Portfolio</button>
       <button class="linkedin" onclick="openLinkedIn()">Connect on LinkedIn</button>
       <button class="email" onclick="openEmail()">Say Hello</button>
@@ -625,6 +673,11 @@
     <!-- Test Button (for debugging) -->
     <button onclick="testButtons()" style="position: fixed; top: 10px; left: 10px; z-index: 1000; padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
       Test Buttons
+    </button>
+
+    <!-- Simple Test Button (always visible) -->
+    <button onclick="alert('Test button works!')" style="position: fixed; top: 10px; right: 10px; z-index: 1000; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
+      Simple Test
     </button>
   </body>
 </html>
