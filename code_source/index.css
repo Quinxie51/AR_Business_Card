@@ -91,7 +91,7 @@ body * {
 
 /* Hide MindAR default UI elements */
 #ar-scene > video {
-  opacity: 0;
+  opacity: 1;
 }
 
 .a-enter-vr,
