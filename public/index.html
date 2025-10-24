@@ -365,54 +365,81 @@
                 onerror="console.error('Error loading 3D model:', this.error)"
             ></a-gltf-model>
 
-              <!-- Social Links in a circle -->
-              <!-- LinkedIn Icon - Top -->
-              <a-image
-                src="#linkedin-icon"
-                position="0 0.3 0"
-                height="0.15"
-                width="0.15"
+              <!-- Contact Buttons positioned relative to the card -->
+              <!-- Website Button -->
+              <a-plane
+                id="website-button"
+                position="-0.4 -0.3 0"
+                width="0.6"
+                height="0.12"
+                color="#ffffff"
+                opacity="0.9"
+                material="transparent: true; opacity: 0.9"
                 class="clickable"
-                opacity="0"
-                visible="false"
-                delayed-appearance
-                animation__orbit="property: rotation; dur: 30000; loop: true; to: 0 360 0;"
                 clickable
                 link-type="url"
-                link-url="https://www.linkedin.com/in/quyendoan51/"
-              ></a-image>
+                link-url="https://quinxie51.github.io/Portfolio/"
+                animation__float="property: position; dur: 2000; dir: alternate; easing: easeInOutQuad; loop: true; from: -0.4 -0.3 0; to: -0.4 -0.25 0"
+              >
+                <a-text
+                  value="Visit Portfolio"
+                  position="0 0 0.01"
+                  align="center"
+                  color="#000000"
+                  font="dejavu"
+                  width="6"
+                ></a-text>
+              </a-plane>
 
-              <!-- Portfolio Icon - Bottom Right -->
-              <a-image
-                src="#portfolio-icon"
-                position="0.26 -0.15 0"
-                height="0.15"
-                width="0.15"
+              <!-- LinkedIn Button -->
+              <a-plane
+                id="linkedin-button"
+                position="0 -0.3 0"
+                width="0.6"
+                height="0.12"
+                color="#0077b5"
+                opacity="0.9"
+                material="transparent: true; opacity: 0.9"
                 class="clickable"
-                opacity="0"
-                visible="false"
-                delayed-appearance
-                animation__orbit="property: rotation; dur: 30000; loop: true; to: 0 360 0;"
                 clickable
                 link-type="url"
-                link-url="https://quinxiedoan.xyz"
-              ></a-image>
+                link-url="https://www.linkedin.com/in/quyen-hoang-2bb5a4179/"
+                animation__float="property: position; dur: 2000; dir: alternate; easing: easeInOutQuad; loop: true; from: 0 -0.3 0; to: 0 -0.25 0"
+              >
+                <a-text
+                  value="Connect on LinkedIn"
+                  position="0 0 0.01"
+                  align="center"
+                  color="#ffffff"
+                  font="dejavu"
+                  width="4"
+                ></a-text>
+              </a-plane>
 
-              <!-- Email Icon - Bottom Left -->
-              <a-image
-                src="#email-icon"
-                position="-0.26 -0.15 0"
-                height="0.15"
-                width="0.15"
+              <!-- Email Button -->
+              <a-plane
+                id="email-button"
+                position="0.4 -0.3 0"
+                width="0.6"
+                height="0.12"
+                color="#ffffff"
+                opacity="0.9"
+                material="transparent: true; opacity: 0.9"
                 class="clickable"
-                opacity="0"
-                visible="false"
-                delayed-appearance
-                animation__orbit="property: rotation; dur: 30000; loop: true; to: 0 360 0;"
                 clickable
                 link-type="email"
-                link-url="mailto:quyendoan51@gmail.com"
-              ></a-image>
+                link-url="mailto:quyenhoang5197@gmail.com"
+                animation__float="property: position; dur: 2000; dir: alternate; easing: easeInOutQuad; loop: true; from: 0.4 -0.3 0; to: 0.4 -0.25 0"
+              >
+                <a-text
+                  value="Say Hello"
+                  position="0 0 0.01"
+                  align="center"
+                  color="#000000"
+                  font="dejavu"
+                  width="4"
+                ></a-text>
+              </a-plane>
 
               <!-- Circular path for icons -->
               <a-entity
@@ -465,29 +492,19 @@
         window.location.href = 'mailto:quyenhoang5197@gmail.com';
       }
 
-      // Show buttons when target is found
+      // Show buttons when target is found (3D buttons are now part of the AR scene)
       function showContactButtons() {
-        const buttons = document.getElementById('contact-buttons');
-        if (buttons) {
-          buttons.style.display = 'flex';
-          buttons.style.animation = 'fadeInUp 0.6s ease-out';
-        }
+        console.log('3D buttons are now integrated into the AR scene and will appear automatically');
+        // The 3D buttons are now part of the AR scene and will appear when the target is detected
       }
 
-      // Hide buttons when target is lost
+      // Hide buttons when target is lost (3D buttons will disappear automatically)
       function hideContactButtons() {
-        const buttons = document.getElementById('contact-buttons');
-        if (buttons) {
-          buttons.style.display = 'none';
-        }
+        console.log('3D buttons will disappear automatically when target is lost');
+        // The 3D buttons are now part of the AR scene and will disappear when the target is lost
       }
     </script>
 
-    <!-- Beautiful Contact Buttons -->
-    <div class="buttons" id="contact-buttons" style="display: none;">
-      <button class="website" onclick="openWebsite()">Visit Portfolio</button>
-      <button class="linkedin" onclick="openLinkedIn()">Connect on LinkedIn</button>
-      <button class="email" onclick="openEmail()">Say Hello</button>
-    </div>
+      <!-- 3D buttons are now integrated into the AR scene -->
   </body>
 </html>

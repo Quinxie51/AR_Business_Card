@@ -597,60 +597,88 @@
             visible="true"
           ></a-gltf-model>
 
-          <!-- Social media icons -->
-          <a-image
-            id="linkedin"
+          <!-- Contact Buttons positioned relative to the card -->
+          <!-- Website Button -->
+          <a-plane
+            id="website-button"
+            position="-0.4 -0.3 0"
+            width="0.6"
+            height="0.12"
+            color="#ffffff"
+            opacity="0.9"
+            material="transparent: true; opacity: 0.9"
             class="clickable"
-            src="#linkedin-icon"
-            position="-0.5 0 0"
-            height="0.3"
-            width="0.3"
-            link-url="https://www.linkedin.com/in/quyen-hoang-2bb5a4179/"
+            clickable
             link-type="url"
-            animation="property: scale; to: 1.2 1.2 1.2; dir: alternate; dur: 1000; loop: true;"
-            visible="false"
-            delayed-appearance
-          ></a-image>
-
-          <a-image
-            id="portfolio"
-            class="clickable"
-            src="#portfolio-icon"
-            position="0 0 0"
-            height="0.3"
-            width="0.3"
             link-url="https://quinxie51.github.io/Portfolio/"
-            link-type="url"
-            animation="property: scale; to: 1.2 1.2 1.2; dir: alternate; dur: 1000; loop: true;"
-            visible="false"
-            delayed-appearance
-          ></a-image>
+            animation__float="property: position; dur: 2000; dir: alternate; easing: easeInOutQuad; loop: true; from: -0.4 -0.3 0; to: -0.4 -0.25 0"
+          >
+            <a-text
+              value="Visit Portfolio"
+              position="0 0 0.01"
+              align="center"
+              color="#000000"
+              font="dejavu"
+              width="6"
+            ></a-text>
+          </a-plane>
 
-          <a-image
-            id="email"
+          <!-- LinkedIn Button -->
+          <a-plane
+            id="linkedin-button"
+            position="0 -0.3 0"
+            width="0.6"
+            height="0.12"
+            color="#0077b5"
+            opacity="0.9"
+            material="transparent: true; opacity: 0.9"
             class="clickable"
-            src="#email-icon"
-            position="0.5 0 0"
-            height="0.3"
-            width="0.3"
-            link-url="mailto:quyenhoang5197@gmail.com"
+            clickable
+            link-type="url"
+            link-url="https://www.linkedin.com/in/quyen-hoang-2bb5a4179/"
+            animation__float="property: position; dur: 2000; dir: alternate; easing: easeInOutQuad; loop: true; from: 0 -0.3 0; to: 0 -0.25 0"
+          >
+            <a-text
+              value="Connect on LinkedIn"
+              position="0 0 0.01"
+              align="center"
+              color="#ffffff"
+              font="dejavu"
+              width="4"
+            ></a-text>
+          </a-plane>
+
+          <!-- Email Button -->
+          <a-plane
+            id="email-button"
+            position="0.4 -0.3 0"
+            width="0.6"
+            height="0.12"
+            color="#ffffff"
+            opacity="0.9"
+            material="transparent: true; opacity: 0.9"
+            class="clickable"
+            clickable
             link-type="email"
-            animation="property: scale; to: 1.2 1.2 1.2; dir: alternate; dur: 1000; loop: true;"
-            visible="false"
-            delayed-appearance
-          ></a-image>
+            link-url="mailto:quyenhoang5197@gmail.com"
+            animation__float="property: position; dur: 2000; dir: alternate; easing: easeInOutQuad; loop: true; from: 0.4 -0.3 0; to: 0.4 -0.25 0"
+          >
+            <a-text
+              value="Say Hello"
+              position="0 0 0.01"
+              align="center"
+              color="#000000"
+              font="dejavu"
+              width="4"
+            ></a-text>
+          </a-plane>
         </a-entity>
       </a-scene>
     </div>
     <div id="ui-display">
       <!-- Add any of your customized UIs. Note that this will cover the original scene.-->
       
-      <!-- Beautiful Contact Buttons -->
-      <div class="buttons" id="contact-buttons" style="display: none;">
-        <button class="website" onclick="openWebsite()">Visit Portfolio</button>
-        <button class="linkedin" onclick="openLinkedIn()">Connect on LinkedIn</button>
-        <button class="email" onclick="openEmail()">Say Hello</button>
-      </div>
+      <!-- 3D buttons are now integrated into the AR scene -->
     </div>
     <script>
       // Add music control function
@@ -682,21 +710,16 @@
         window.location.href = 'mailto:quyenhoang5197@gmail.com';
       }
 
-      // Show buttons when target is found
+      // Show buttons when target is found (3D buttons are now part of the AR scene)
       function showContactButtons() {
-        const buttons = document.getElementById('contact-buttons');
-        if (buttons) {
-          buttons.style.display = 'flex';
-          buttons.style.animation = 'fadeInUp 0.6s ease-out';
-        }
+        console.log('3D buttons are now integrated into the AR scene and will appear automatically');
+        // The 3D buttons are now part of the AR scene and will appear when the target is detected
       }
 
-      // Hide buttons when target is lost
+      // Hide buttons when target is lost (3D buttons will disappear automatically)
       function hideContactButtons() {
-        const buttons = document.getElementById('contact-buttons');
-        if (buttons) {
-          buttons.style.display = 'none';
-        }
+        console.log('3D buttons will disappear automatically when target is lost');
+        // The 3D buttons are now part of the AR scene and will disappear when the target is lost
       }
     </script>
   </body>
