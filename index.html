@@ -402,21 +402,46 @@
             if (video) {
               video.setAttribute('visible', true);
               video.setAttribute('opacity', 1);
-              try {
-                video.play();
-                console.log('AR video started playing');
-              } catch (error) {
-                console.log('Could not play video:', error);
+              
+              // Wait for video to be ready before playing
+              const playVideo = () => {
+                try {
+                  video.play().then(() => {
+                    console.log('AR video started playing successfully');
+                  }).catch(error => {
+                    console.log('Could not play AR video:', error);
+                    // Try playing the asset directly
+                    if (videoAsset) {
+                      videoAsset.play().then(() => {
+                        console.log('Video asset started playing as fallback');
+                      }).catch(err => {
+                        console.log('Could not play video asset:', err);
+                      });
+                    }
+                  });
+                } catch (error) {
+                  console.log('Error playing video:', error);
+                }
+              };
+              
+              // If video is ready, play immediately, otherwise wait
+              if (videoAsset && videoAsset.readyState >= 2) {
+                playVideo();
+              } else {
+                videoAsset.addEventListener('canplay', playVideo, { once: true });
               }
             }
             
             // Also try to play the video asset directly
-            if (videoAsset) {
+            if (videoAsset && videoAsset.readyState >= 2) {
               try {
-                videoAsset.play();
-                console.log('Video asset started playing');
+                videoAsset.play().then(() => {
+                  console.log('Video asset started playing');
+                }).catch(error => {
+                  console.log('Could not play video asset:', error);
+                });
               } catch (error) {
-                console.log('Could not play video asset:', error);
+                console.log('Error playing video asset:', error);
               }
             }
           });
@@ -557,14 +582,22 @@
           <video
             id="promo-video"
             src="./videos/0km.mp4"
-            autoplay="true"
+            autoplay="false"
             loop="true"
             muted="true"
             playsinline="true"
-            preload="auto"
+            preload="metadata"
+            crossorigin="anonymous"
+            onloadstart="console.log('Video load started')"
+            onloadedmetadata="console.log('Video metadata loaded, duration:', this.duration)"
+            oncanplay="console.log('Video can play')"
             onload="console.log('Video loaded successfully')"
-            onerror="console.log('Video file not found - this is optional. Place your video in /videos/0km.mp4')"
-          ></video>
+            onerror="console.error('Video load error:', this.error)"
+          >
+            <!-- Fallback for browsers that don't support MP4 -->
+            <source src="./videos/0km.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
         </a-assets>
 
         <a-camera
@@ -601,6 +634,8 @@
             opacity="1"
             onload="console.log('AR Video loaded successfully')"
             onerror="console.error('Error loading AR video:', this.error)"
+            onloadeddata="console.log('AR Video data loaded')"
+            oncanplay="console.log('AR Video can play')"
           ></a-video>
 
           <!-- 2D buttons will be positioned via JavaScript to follow the card -->
@@ -610,6 +645,21 @@
     <div id="ui-display">
       <!-- Add any of your customized UIs. Note that this will cover the original scene.-->
       
+      <!-- Test video element (temporary for debugging) -->
+      <video 
+        id="test-video" 
+        muted 
+        playsinline 
+        style="position: fixed; top: 10px; right: 10px; width: 200px; height: 150px; z-index: 9999; background: black;"
+        onloadstart="console.log('Test video load started')"
+        onloadedmetadata="console.log('Test video metadata loaded')"
+        oncanplay="console.log('Test video can play')"
+        onerror="console.error('Test video error:', this.error)"
+      >
+        <source src="./videos/0km.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      
       <!-- 2D Contact Buttons that follow the AR card -->
       <div class="buttons" id="contact-buttons" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;">
         <button class="email" onclick="openEmail()">Email</button>
@@ -618,6 +668,48 @@
       </div>
     </div>
     <script>
+
+      // Test video playback on click
+      document.addEventListener('click', function() {
+        const testVideo = document.getElementById('test-video');
+        const arVideo = document.querySelector('#ar-video');
+        const videoAsset = document.querySelector('#promo-video');
+        
+        console.log('Click detected - testing video playback');
+        
+        if (testVideo) {
+          if (testVideo.paused) {
+            testVideo.play().then(() => {
+              console.log('Test video started playing');
+            }).catch(error => {
+              console.log('Test video play failed:', error);
+            });
+          } else {
+            testVideo.pause();
+            console.log('Test video paused');
+          }
+        }
+        
+        if (arVideo) {
+          if (arVideo.paused) {
+            arVideo.play().then(() => {
+              console.log('AR video started playing');
+            }).catch(error => {
+              console.log('AR video play failed:', error);
+            });
+          }
+        }
+        
+        if (videoAsset) {
+          if (videoAsset.paused) {
+            videoAsset.play().then(() => {
+              console.log('Video asset started playing');
+            }).catch(error => {
+              console.log('Video asset play failed:', error);
+            });
+          }
+        }
+      });
 
       // Contact button functions
       function openWebsite() {
