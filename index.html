@@ -392,86 +392,8 @@
             // Show contact buttons
             showContactButtons();
             
-            // Play video when target is found (mobile-optimized)
-            const video = document.querySelector('#ar-video');
-            const videoAsset = document.querySelector('#promo-video');
-            
-            console.log('Target found - attempting video playback');
-            console.log('Video element:', video);
-            console.log('Video asset:', videoAsset);
-            
-            if (video) {
-              video.setAttribute('visible', true);
-              video.setAttribute('opacity', 1);
-              
-              // Mobile-friendly video play with user interaction
-              const playVideo = () => {
-                // Add mobile-specific attributes
-                video.setAttribute('playsinline', true);
-                video.setAttribute('webkit-playsinline', true);
-                video.setAttribute('muted', true);
-                
-                try {
-                  video.play().then(() => {
-                    console.log('AR video started playing successfully');
-                  }).catch(error => {
-                    console.log('Could not play AR video:', error);
-                    console.log('Error details:', error.message);
-                    
-                    // Try playing the asset directly as fallback
-                    if (videoAsset) {
-                      videoAsset.setAttribute('playsinline', true);
-                      videoAsset.setAttribute('webkit-playsinline', true);
-                      videoAsset.setAttribute('muted', true);
-                      
-                      videoAsset.play().then(() => {
-                        console.log('Video asset started playing as fallback');
-                      }).catch(err => {
-                        console.log('Could not play video asset:', err);
-                        console.log('Asset error details:', err.message);
-                      });
-                    }
-                  });
-                } catch (error) {
-                  console.log('Error playing video:', error);
-                }
-              };
-              
-              // Try to play immediately, or wait for video to be ready
-              if (videoAsset && videoAsset.readyState >= 2) {
-                playVideo();
-              } else {
-                console.log('Video not ready, waiting for canplay event');
-                videoAsset.addEventListener('canplay', playVideo, { once: true });
-                
-                // Fallback timeout
-                setTimeout(() => {
-                  if (videoAsset.readyState >= 2) {
-                    playVideo();
-                  }
-                }, 2000);
-              }
-            }
-            
-            // Also try to play the video asset directly
-            if (videoAsset) {
-              videoAsset.setAttribute('playsinline', true);
-              videoAsset.setAttribute('webkit-playsinline', true);
-              videoAsset.setAttribute('muted', true);
-              
-              if (videoAsset.readyState >= 2) {
-                try {
-                  videoAsset.play().then(() => {
-                    console.log('Video asset started playing');
-                  }).catch(error => {
-                    console.log('Could not play video asset:', error);
-                    console.log('Asset error details:', error.message);
-                  });
-                } catch (error) {
-                  console.log('Error playing video asset:', error);
-                }
-              }
-            }
+            // Video is hidden for now - no playback needed
+            console.log('Target found - video playback disabled');
           });
 
           sceneEl.addEventListener('targetLost', () => {
@@ -479,14 +401,8 @@
             // Hide contact buttons
             hideContactButtons();
             
-            // Pause video when target is lost
-            const video = document.querySelector('#ar-video');
-            if (video) {
-              video.pause();
-              video.setAttribute('visible', false);
-              video.setAttribute('opacity', 0);
-              console.log('AR video paused');
-            }
+            // Video is hidden - no pause needed
+            console.log('Target lost - video remains hidden');
           });
 
         } catch (error) {
@@ -657,9 +573,9 @@
             width="1.2"
             height="0.8"
             rotation="0 0 0"
-            visible="true"
+            visible="false"
             id="ar-video"
-            opacity="1"
+            opacity="0"
             autoplay="false"
             loop="true"
             muted="true"

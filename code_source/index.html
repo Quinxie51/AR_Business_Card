@@ -450,47 +450,16 @@
              // Show contact buttons when target is found
              showContactButtons();
              
-             // Play video when target is found
-             const video = document.querySelector('#ar-video');
-             const videoAsset = document.querySelector('#promo-video');
-             
-             console.log('Video element:', video);
-             console.log('Video asset:', videoAsset);
-             
-             if (video) {
-               video.setAttribute('visible', true);
-               video.setAttribute('opacity', 1);
-               try {
-                 video.play();
-                 console.log('AR video started playing');
-               } catch (error) {
-                 console.log('Could not play video:', error);
-               }
-             }
-             
-             // Also try to play the video asset directly
-             if (videoAsset) {
-               try {
-                 videoAsset.play();
-                 console.log('Video asset started playing');
-               } catch (error) {
-                 console.log('Could not play video asset:', error);
-               }
-             }
+             // Video is hidden for now - no playback needed
+             console.log('Target found - video playback disabled');
            });
 
            this.el.addEventListener('targetLost', () => {
              // Hide contact buttons when target is lost
              hideContactButtons();
              
-             // Pause video when target is lost
-             const video = document.querySelector('#ar-video');
-             if (video) {
-               video.pause();
-               video.setAttribute('visible', false);
-               video.setAttribute('opacity', 0);
-               console.log('AR video paused');
-             }
+             // Video is hidden - no pause needed
+             console.log('Target lost - video remains hidden');
            });
          }
        });
@@ -653,9 +622,9 @@
                  width="1.2"
                  height="0.8"
                  rotation="0 0 0"
-                 visible="true"
+                 visible="false"
                  id="ar-video"
-                 opacity="1"
+                 opacity="0"
                  onload="console.log('AR Video loaded successfully')"
                  onerror="console.error('Error loading AR video:', this.error)"
                ></a-video>
