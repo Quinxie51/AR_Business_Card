@@ -693,6 +693,21 @@
             position="0 0 0.8"
           ></a-light> -->
           <a-entity id="card-front-moveable-root">
+            <!-- Video element for AR tracking: lay flat on card surface -->
+            <a-video
+              src="#promo-video"
+              position="0 0 0.01"
+              width="1"
+              height="0.5625"
+              rotation="-90 0 0"
+              scale="1 1 1"
+              visible="true"
+              id="ar-video"
+              opacity="1"
+              onload="console.log('AR Video loaded successfully')"
+              onerror="console.error('Error loading AR video:', this.error)"
+            ></a-video>
+
             <!-- Container for model and icons that will float together -->
              <a-entity
                id="floating-container"
@@ -711,22 +726,6 @@
                  onload="console.log('3D Model loaded successfully'); this.setAttribute('animation-mixer', {clip: '*', loop: 'repeat', timeScale: 1});"
                  onerror="console.error('Error loading 3D model:', this.error)"
              ></a-gltf-model>
-
-               <!-- Video element for AR tracking -->
-               <a-video
-                 src="#promo-video"
-                 position="-0.1 -0.1 -0.1"
-                 width="1.2"
-                 height="0.8"
-                 rotation="-90 0 0"
-                 scale="-1 1 1"
-                 visible="true"
-                 id="ar-video"
-                 opacity="1"
-                 onload="console.log('AR Video loaded successfully')"
-                 onerror="console.error('Error loading AR video:', this.error)"
-               ></a-video>
-
                <!-- 2D buttons will be positioned via JavaScript to follow the card -->
 
                <!-- Circular path for icons -->
