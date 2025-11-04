@@ -450,16 +450,31 @@
              // Show contact buttons when target is found
              showContactButtons();
              
-             // Video is hidden for now - no playback needed
-             console.log('Target found - video playback disabled');
+             // Play video when target is found
+             const arVideo = document.getElementById('ar-video');
+             const promoVideo = document.getElementById('promo-video');
+             if (arVideo && promoVideo) {
+               // Make sure video is visible
+               arVideo.setAttribute('visible', true);
+               arVideo.setAttribute('opacity', 1);
+               // Play the video element
+               if (promoVideo instanceof HTMLVideoElement) {
+                 promoVideo.play().catch(err => console.log('Video play error:', err));
+                 console.log('Video playback started');
+               }
+             }
            });
 
            this.el.addEventListener('targetLost', () => {
              // Hide contact buttons when target is lost
              hideContactButtons();
              
-             // Video is hidden - no pause needed
-             console.log('Target lost - video remains hidden');
+             // Pause video when target is lost
+             const promoVideo = document.getElementById('promo-video');
+             if (promoVideo && promoVideo instanceof HTMLVideoElement) {
+               promoVideo.pause();
+               console.log('Video playback paused');
+             }
            });
          }
        });
@@ -622,9 +637,9 @@
                  width="1.2"
                  height="0.8"
                  rotation="0 0 0"
-                 visible="false"
+                 visible="true"
                  id="ar-video"
-                 opacity="0"
+                 opacity="1"
                  onload="console.log('AR Video loaded successfully')"
                  onerror="console.error('Error loading AR video:', this.error)"
                ></a-video>
