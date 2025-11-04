@@ -499,13 +499,24 @@
                arVideo.setAttribute('opacity', 1);
                // Play the video element
               if (promoVideo instanceof HTMLVideoElement) {
-                ensureInlineMuted(promoVideo);
-                promoVideo.play().then(() => {
-                  console.log('Video playback started');
-                }).catch(err => {
-                  console.log('Video play error:', err);
-                  showTapOverlay();
-                });
+               if (window.__audioUnlocked__) {
+                 // If user just unlocked while the target is already visible, skip this cycle
+                 if (window.__requireNextTargetFoundForAudio__) {
+                   window.__requireNextTargetFoundForAudio__ = false;
+                   return; // do not play on this targetFound; wait for the next one
+                 }
+                 promoVideo.muted = false;
+                 promoVideo.removeAttribute('muted');
+                 promoVideo.volume = 1.0;
+               } else {
+                 ensureInlineMuted(promoVideo);
+               }
+               promoVideo.play().then(() => {
+                 console.log('Video playback started');
+               }).catch(err => {
+                 console.log('Video play error:', err);
+                 showTapOverlay();
+               });
               }
              }
            });
@@ -518,6 +529,7 @@
              const promoVideo = document.getElementById('promo-video');
              if (promoVideo && promoVideo instanceof HTMLVideoElement) {
                promoVideo.pause();
+              // Keep audio state as-is; next targetFound will set based on unlock
                console.log('Video playback paused');
              }
            });
@@ -724,19 +736,37 @@
     <script>
       // Globally attach tap-to-play logic at the end of body
       (function(){
+        // Track whether AR target is currently visible
+        window.__targetVisible__ = false;
+        const cardFront = document.getElementById('card-front');
+        if (cardFront) {
+          cardFront.addEventListener('targetFound', () => { window.__targetVisible__ = true; });
+          cardFront.addEventListener('targetLost', () => { window.__targetVisible__ = false; });
+        }
+
         const tapBtn = document.getElementById('tap-to-play');
         if (tapBtn) {
           tapBtn.addEventListener('click', async () => {
             const v = document.getElementById('promo-video');
             // Unlock audio within user gesture
             window.__audioUnlocked__ = true;
+            window.__requireNextTargetFoundForAudio__ = true;
             if (v) {
+              // Prime silently during user gesture so future unmuted play is allowed
+              try {
+                v.setAttribute('playsinline','');
+                v.setAttribute('webkit-playsinline','');
+                v.muted = true;
+                v.setAttribute('muted','');
+                await v.play();
+                await v.pause();
+              } catch (e) {
+                console.warn('Priming video failed:', e);
+              }
+              // Prepare for audible playback later (do not start now)
               v.muted = false;
               v.removeAttribute('muted');
               v.volume = 1.0;
-              v.setAttribute('playsinline','');
-              v.setAttribute('webkit-playsinline','');
-              try { await v.play(); } catch (e) { console.warn('Manual play still blocked:', e); }
             }
             hideTapOverlay();
           });
@@ -749,22 +779,25 @@
           attemptedOnFirstClick = true;
           // On first click, also try to unlock audio
           window.__audioUnlocked__ = true;
+          window.__requireNextTargetFoundForAudio__ = true;
           const v = document.getElementById('promo-video');
           if (v) {
+            // Prime silently
+            try {
+              v.setAttribute('playsinline','');
+              v.setAttribute('webkit-playsinline','');
+              v.muted = true;
+              v.setAttribute('muted','');
+              await v.play();
+              await v.pause();
+            } catch (e) {}
             v.muted = false;
             v.removeAttribute('muted');
             v.volume = 1.0;
           }
-          try { await tryPlayPromoVideo(); } catch(e) {}
+          // Do NOT auto play here; wait for AR targetFound
         }, { once: true });
-
-        // Also try when the target is found (if blocked, overlay will show)
-        const cardFront = document.getElementById('card-front');
-        if (cardFront) {
-          cardFront.addEventListener('targetFound', () => {
-            tryPlayPromoVideo();
-          });
-        }
+        // Playback on targetFound is handled by the audio-controller component
       })();
     </script>
 
