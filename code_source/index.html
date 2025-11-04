@@ -185,6 +185,7 @@
 
       function ensureInlineMuted(video){
         if (!video) return;
+        if (window.__audioUnlocked__) return; // don't re-mute once audio is unlocked
         video.muted = true;
         video.setAttribute('muted','');
         video.setAttribute('playsinline','');
@@ -727,8 +728,16 @@
         if (tapBtn) {
           tapBtn.addEventListener('click', async () => {
             const v = document.getElementById('promo-video');
-            ensureInlineMuted(v);
-            try { await v.play(); } catch (e) { console.warn('Manual play still blocked:', e); }
+            // Unlock audio within user gesture
+            window.__audioUnlocked__ = true;
+            if (v) {
+              v.muted = false;
+              v.removeAttribute('muted');
+              v.volume = 1.0;
+              v.setAttribute('playsinline','');
+              v.setAttribute('webkit-playsinline','');
+              try { await v.play(); } catch (e) { console.warn('Manual play still blocked:', e); }
+            }
             hideTapOverlay();
           });
         }
@@ -738,6 +747,14 @@
         window.addEventListener('click', async () => {
           if (attemptedOnFirstClick) return;
           attemptedOnFirstClick = true;
+          // On first click, also try to unlock audio
+          window.__audioUnlocked__ = true;
+          const v = document.getElementById('promo-video');
+          if (v) {
+            v.muted = false;
+            v.removeAttribute('muted');
+            v.volume = 1.0;
+          }
           try { await tryPlayPromoVideo(); } catch(e) {}
         }, { once: true });
 
