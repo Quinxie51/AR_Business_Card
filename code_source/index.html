@@ -187,12 +187,34 @@
           promoVideo.pause();
           promoVideo.src = nextSrc;
           promoVideo.load();
+          // Update AR plane size once metadata is available
+          const onMeta = () => {
+            updateArVideoSizeFromSource();
+            promoVideo.removeEventListener('loadedmetadata', onMeta);
+          };
+          promoVideo.addEventListener('loadedmetadata', onMeta);
           // Attempt playback (handles autoplay policies via tryPlayPromoVideo)
           tryPlayPromoVideo();
           console.log('Switched project video to:', projectName, nextSrc);
         } catch (e) {
           console.error('Failed to switch project video:', e);
         }
+      }
+
+      // Keep AR video plane matching the source aspect ratio
+      function updateArVideoSizeFromSource() {
+        const promoVideo = document.getElementById('promo-video');
+        const arVideoEl = document.getElementById('ar-video');
+        if (!promoVideo || !arVideoEl) return;
+        const vw = promoVideo.videoWidth || 0;
+        const vh = promoVideo.videoHeight || 0;
+        if (vw <= 0 || vh <= 0) return;
+        // Choose a base width on the card (world units) and compute height by aspect
+        const baseWidth = 1.2; // matches previous layout width
+        const aspect = vh / vw; // height per 1 unit width
+        const computedHeight = baseWidth * aspect;
+        arVideoEl.setAttribute('width', baseWidth);
+        arVideoEl.setAttribute('height', Number(computedHeight.toFixed(4)));
       }
 
       // Show buttons when target is found and make them follow the card
@@ -228,6 +250,20 @@
           showTapOverlay();
         }
       }
+
+      // Initialize AR plane sizing when metadata is first available
+      window.addEventListener('load', () => {
+        const promoVideo = document.getElementById('promo-video');
+        if (!promoVideo) return;
+        const onMeta = () => {
+          updateArVideoSizeFromSource();
+        };
+        if (promoVideo.readyState >= 1 && promoVideo.videoWidth && promoVideo.videoHeight) {
+          updateArVideoSizeFromSource();
+        } else {
+          promoVideo.addEventListener('loadedmetadata', onMeta, { once: true });
+        }
+      });
 
       function showContactButtons() {
         const contactButtons = document.getElementById('contact-buttons');
