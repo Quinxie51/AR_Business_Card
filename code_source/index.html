@@ -173,6 +173,38 @@
       }
 
       // Show buttons when target is found and make them follow the card
+      function showTapOverlay() {
+        const overlay = document.getElementById('tap-overlay');
+        if (overlay) overlay.style.display = 'flex';
+      }
+
+      function hideTapOverlay() {
+        const overlay = document.getElementById('tap-overlay');
+        if (overlay) overlay.style.display = 'none';
+      }
+
+      function ensureInlineMuted(video){
+        if (!video) return;
+        video.muted = true;
+        video.setAttribute('muted','');
+        video.setAttribute('playsinline','');
+        video.setAttribute('webkit-playsinline','');
+      }
+
+      async function tryPlayPromoVideo() {
+        const promoVideo = document.getElementById('promo-video');
+        if (!promoVideo) return;
+        ensureInlineMuted(promoVideo);
+        try {
+          await promoVideo.play();
+          hideTapOverlay();
+          console.log('Video playback started');
+        } catch (e) {
+          console.warn('Video play blocked, showing tap overlay:', e?.name || e);
+          showTapOverlay();
+        }
+      }
+
       function showContactButtons() {
         const buttons = document.getElementById('contact-buttons');
         if (buttons) {
@@ -280,6 +312,13 @@
       window.showButtons = showContactButtons;
       window.hideButtons = hideContactButtons;
     </script>
+    <!-- Tap-to-play overlay -->
+    <div id="tap-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); color:#fff; display:flex; align-items:center; justify-content:center; z-index:10000; font:16px/1.4 -apple-system,system-ui;">
+      <div style="text-align:center">
+        <div>Tap to enable video</div>
+        <button id="tap-to-play" style="margin-top:16px; padding:10px 20px; border:0; border-radius:8px;">Continue</button>
+      </div>
+    </div>
     <style>
       /* Add this inside your head section */
       .clickable {
@@ -458,10 +497,15 @@
                arVideo.setAttribute('visible', true);
                arVideo.setAttribute('opacity', 1);
                // Play the video element
-               if (promoVideo instanceof HTMLVideoElement) {
-                 promoVideo.play().catch(err => console.log('Video play error:', err));
-                 console.log('Video playback started');
-               }
+              if (promoVideo instanceof HTMLVideoElement) {
+                ensureInlineMuted(promoVideo);
+                promoVideo.play().then(() => {
+                  console.log('Video playback started');
+                }).catch(err => {
+                  console.log('Video play error:', err);
+                  showTapOverlay();
+                });
+              }
              }
            });
 
@@ -540,11 +584,12 @@
           <video
             id="promo-video"
             src="/videos/0km_h264.mp4"
-            autoplay="true"
             loop="true"
-            muted="true"
-            playsinline="true"
+            muted
+            playsinline
+            webkit-playsinline
             preload="auto"
+            crossorigin="anonymous"
             onload="console.log('Video loaded successfully')"
             onerror="console.log('Video file not found - this is optional. Place your video in /videos/0km.mp4')"
           ></video>
@@ -674,6 +719,37 @@
       <button class="linkedin" onclick="openLinkedIn()">LinkedIn</button>
       <button class="website" onclick="openWebsite()">Portfolio</button>
     </div>
+
+    <script>
+      // Globally attach tap-to-play logic at the end of body
+      (function(){
+        const tapBtn = document.getElementById('tap-to-play');
+        if (tapBtn) {
+          tapBtn.addEventListener('click', async () => {
+            const v = document.getElementById('promo-video');
+            ensureInlineMuted(v);
+            try { await v.play(); } catch (e) { console.warn('Manual play still blocked:', e); }
+            hideTapOverlay();
+          });
+        }
+
+        // As a fallback, any first user click can also try to start the video
+        let attemptedOnFirstClick = false;
+        window.addEventListener('click', async () => {
+          if (attemptedOnFirstClick) return;
+          attemptedOnFirstClick = true;
+          try { await tryPlayPromoVideo(); } catch(e) {}
+        }, { once: true });
+
+        // Also try when the target is found (if blocked, overlay will show)
+        const cardFront = document.getElementById('card-front');
+        if (cardFront) {
+          cardFront.addEventListener('targetFound', () => {
+            tryPlayPromoVideo();
+          });
+        }
+      })();
+    </script>
 
   </body>
 </html>
