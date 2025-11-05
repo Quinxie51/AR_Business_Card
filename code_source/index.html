@@ -221,8 +221,13 @@
         
         // Move PixelGame video up to avoid covering the card
         const currentProject = window.__currentProject__ || '';
-        const yPosition = (currentProject === 'PixelGame') ? 0.3 : 0;
-        arVideoEl.setAttribute('position', `0 ${yPosition} 0.001`);
+        let yPosition = 0;
+        if (currentProject === 'PixelGame') {
+          // Move up by half the video height + spacing to position above the card
+          yPosition = (height / 2) + 0.5;
+        }
+        arVideoEl.setAttribute('position', `0 ${Number(yPosition.toFixed(4))} 0.001`);
+        console.log('Video positioned:', currentProject, 'Y:', yPosition, 'Height:', height);
       }
 
       // Show buttons when target is found and make them follow the card
