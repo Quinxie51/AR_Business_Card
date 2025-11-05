@@ -206,15 +206,17 @@
         const promoVideo = document.getElementById('promo-video');
         const arVideoEl = document.getElementById('ar-video');
         if (!promoVideo || !arVideoEl) return;
-        const vw = promoVideo.videoWidth || 0;
-        const vh = promoVideo.videoHeight || 0;
-        if (vw <= 0 || vh <= 0) return;
-        // Choose a base width on the card (world units) and compute height by aspect
-        const baseWidth = 1.2; // matches previous layout width
-        const aspect = vh / vw; // height per 1 unit width
-        const computedHeight = baseWidth * aspect;
-        arVideoEl.setAttribute('width', baseWidth);
-        arVideoEl.setAttribute('height', Number(computedHeight.toFixed(4)));
+
+        const vw = promoVideo.videoWidth;
+        const vh = promoVideo.videoHeight;
+        if (!vw || !vh) return;
+
+        const TARGET_WIDTH = 1;               // MindAR default marker width
+        const height = TARGET_WIDTH * (vh / vw);
+
+        arVideoEl.setAttribute('width', TARGET_WIDTH);
+        arVideoEl.setAttribute('height', Number(height.toFixed(4)));
+        arVideoEl.setAttribute('position', `0 0 0.001`); // centered on marker
       }
 
       // Show buttons when target is found and make them follow the card
@@ -750,14 +752,11 @@
 
                <!-- Video element for AR tracking -->
                <a-video
-                 src="#promo-video"
-                position="0 -0.45 -0.01"
-                 width="1.2"
-                 height="0.8"
-                rotation="-45 0 0"
-                scale="1 -1 1"
-                 visible="true"
                  id="ar-video"
+                 src="#promo-video"
+                 position="0 0 0.001"
+                 rotation="0 0 0"
+                 visible="true"
                  opacity="1"
                  onload="console.log('AR Video loaded successfully')"
                  onerror="console.error('Error loading AR video:', this.error)"
