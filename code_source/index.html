@@ -203,6 +203,17 @@
         }
       }
 
+      // --- tune these to your printed marker/card ---
+      const MARKER_WIDTH_UNITS   = 1;      // MindAR default: marker width = 1 world unit
+      const MARKER_ASPECT_H_OVER_W = 2/3;  // marker height / width  (e.g., 3:2 photo => 2/3)
+      const TOP_MARGIN_UNITS     = 0.05;   // small gap from top edge for PixelGame
+
+      // Optional per-project vertical offsets (extra nudge)
+      const PROJECT_Y_OFFSETS = {
+        PixelGame: 0.10,   // push up a bit more for the vertical clip
+        // others default to 0
+      };
+
       // Keep AR video plane matching the source aspect ratio
       function updateArVideoSizeFromSource() {
         const promoVideo = document.getElementById('promo-video');
@@ -213,21 +224,39 @@
         const vh = promoVideo.videoHeight;
         if (!vw || !vh) return;
 
-        const TARGET_WIDTH = 1;               // MindAR default marker width
-        const height = TARGET_WIDTH * (vh / vw);
+        // --- 1) Fit video inside marker (contain) ---
+        const markerW = MARKER_WIDTH_UNITS;
+        const markerH = markerW * MARKER_ASPECT_H_OVER_W;
 
-        arVideoEl.setAttribute('width', TARGET_WIDTH);
-        arVideoEl.setAttribute('height', Number(height.toFixed(4)));
-        
-        // Move PixelGame video up to avoid covering the card
-        const currentProject = window.__currentProject__ || '';
-        let yPosition = 0;
-        if (currentProject === 'PixelGame') {
-          // Move up by half the video height + spacing to position above the card
-          yPosition = (height / 2) + 0.5;
+        // start by filling width=markerW
+        let vidW = markerW;
+        let vidH = vidW * (vh / vw);
+
+        // if too tall, shrink to fit height instead
+        if (vidH > markerH) {
+          vidH = markerH;
+          vidW = vidH * (vw / vh);
         }
-        arVideoEl.setAttribute('position', `0 ${Number(yPosition.toFixed(4))} 0.001`);
-        console.log('Video positioned:', currentProject, 'Y:', yPosition, 'Height:', height);
+
+        arVideoEl.setAttribute('width', Number(vidW.toFixed(4)));
+        arVideoEl.setAttribute('height', Number(vidH.toFixed(4)));
+
+        // --- 2) Position: center by default ---
+        let y = 0;
+
+        // If PixelGame (portrait), align its *top* a bit below the marker's top
+        const project = (window.__currentProject__ || '');
+        if (project === 'PixelGame') {
+          // place top of video at (markerH/2 - TOP_MARGIN_UNITS)
+          // since origin is the video center, centerY = top - (vidH/2)
+          const topTarget = (markerH / 2) - TOP_MARGIN_UNITS;
+          y = topTarget - (vidH / 2);
+
+          // plus any extra per-project nudge
+          y += (PROJECT_Y_OFFSETS[project] || 0);
+        }
+
+        arVideoEl.setAttribute('position', `0 ${Number(y.toFixed(4))} 0.001`);
       }
 
       // Show buttons when target is found and make them follow the card
