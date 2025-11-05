@@ -340,48 +340,71 @@
         const scene = document.querySelector('a-scene');
         const contactButtons = document.getElementById('contact-buttons');
         const projectButtons = document.getElementById('project-buttons');
-        
-        function updateButtonPosition() {
-          // Get the AR target entity
-          const cardFront = document.querySelector('#card-front');
-          if (!cardFront) return;
-          const object3D = cardFront.object3D;
-          if (!object3D) return;
-          const camera = scene.camera;
-          const vector = new THREE.Vector3();
-          object3D.getWorldPosition(vector);
-          vector.project(camera);
-          const widthHalf = window.innerWidth / 2;
-          const heightHalf = window.innerHeight / 2;
-          const x = (vector.x * widthHalf) + widthHalf;
-          const y = -(vector.y * heightHalf) + heightHalf;
-          const imageHeight = 200; // Approximate height of the tracked image in pixels
-          const buttonOffset = 20; // Small gap between image and buttons
 
-          // Bottom/contact buttons (below)
-          if (contactButtons) {
-            contactButtons.style.left = x + 'px';
-            contactButtons.style.top = (y + (imageHeight / 2) + buttonOffset) + 'px';
-            contactButtons.style.transform = 'translateX(-50%)';
-            contactButtons.style.bottom = 'auto';
-          }
-          // Top/project buttons (above)
-          if (projectButtons) {
-            projectButtons.style.left = x + 'px';
-            projectButtons.style.top = (y - (imageHeight / 2) - buttonOffset) + 'px';
-            projectButtons.style.transform = 'translateX(-50%)';
-            projectButtons.style.bottom = 'auto';
-          }
-
-          // Visibility based on whether the image is on screen
-          const visible = (vector.z < 1 && vector.x >= -1 && vector.x <= 1 && vector.y >= -1 && vector.y <= 1);
-          if (contactButtons) contactButtons.style.display = visible ? 'flex' : 'none';
-          if (projectButtons) projectButtons.style.display = visible ? 'flex' : 'none';
+        // project a local (x,y,z) point on the marker to screen pixels
+        function projectPoint(local, node, camera) {
+          const world = new THREE.Vector3(local.x, local.y, local.z);
+          node.localToWorld(world);
+          world.project(camera);
+          const w = window.innerWidth, h = window.innerHeight;
+          return {
+            x: (world.x * 0.5 + 0.5) * w,
+            y: (-world.y * 0.5 + 0.5) * h,
+            visible: world.z < 1 && world.x >= -1 && world.x <= 1 && world.y >= -1 && world.y <= 1
+          };
         }
-        
-        // Update button position every frame for smooth tracking
+
+        function updateButtonPosition() {
+          const cardFront = document.querySelector('#card-front');
+          if (!cardFront || !scene || !scene.camera) return;
+
+          const obj = cardFront.object3D;
+          if (!obj) return;
+          const cam = scene.camera;
+
+          // marker half-sizes in local coords
+          const halfW = MARKER_WIDTH_UNITS / 2;
+          const halfH = (MARKER_WIDTH_UNITS * MARKER_ASPECT_H_OVER_W) / 2;
+
+          // center (0,0,0) and right/top/bottom edges in LOCAL space (Z=0 is the plane)
+          const center = projectPoint({x:0,      y:0,      z:0}, obj, cam);
+          const right  = projectPoint({x:+halfW, y:0,      z:0}, obj, cam);
+          const top    = projectPoint({x:0,      y:+halfH, z:0}, obj, cam);
+          const bottom = projectPoint({x:0,      y:-halfH, z:0}, obj, cam);
+
+          const visible = center.visible && right.visible && top.visible && bottom.visible;
+
+          // --- PROJECT BUTTONS: right side, vertically centered on card ---
+          if (projectButtons) {
+            if (visible) {
+              const offsetPx = 18; // gap from the card edge
+              projectButtons.style.display = 'flex';
+              projectButtons.style.left = (right.x + offsetPx) + 'px';
+              projectButtons.style.top  = ((top.y + bottom.y) / 2) + 'px';
+              projectButtons.style.transform = 'translateY(-50%)'; // center vertically
+            } else {
+              projectButtons.style.display = 'none';
+            }
+          }
+
+          // --- CONTACT BUTTONS: keep your existing below-card logic or center under card ---
+          if (contactButtons) {
+            if (visible) {
+              const buttonOffsetPx = 20;
+              contactButtons.style.display = 'flex';
+              contactButtons.style.left = center.x + 'px';
+              contactButtons.style.top  = (bottom.y + buttonOffsetPx) + 'px';
+              contactButtons.style.transform = 'translateX(-50%)';
+              contactButtons.style.bottom = 'auto';
+            } else {
+              contactButtons.style.display = 'none';
+            }
+          }
+        }
+
+        // Call immediately for better responsiveness
+        updateButtonPosition();
         const trackingInterval = setInterval(updateButtonPosition, 50);
-        // Store interval ID for cleanup
         window.buttonTrackingInterval = trackingInterval;
       }
 
@@ -448,6 +471,26 @@
         background: transparent;
         border-radius: 0;
         box-shadow: none;
+      }
+
+      /* Project buttons: vertical stack */
+      #project-buttons {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        gap: 10px;                  /* vertical spacing */
+        padding: 0;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+        flex-direction: column;     /* stack vertically */
+        align-items: stretch;       /* buttons same width */
+      }
+
+      /* Make the buttons a bit narrower for a clean stack */
+      #project-buttons .website {
+        min-width: 110px;
+        text-align: center;
       }
 
       /* Website Button */
