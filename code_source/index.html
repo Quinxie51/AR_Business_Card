@@ -187,6 +187,8 @@
           promoVideo.pause();
           promoVideo.src = nextSrc;
           promoVideo.load();
+          // Store current project name for positioning
+          window.__currentProject__ = projectName;
           // Update AR plane size once metadata is available
           const onMeta = () => {
             updateArVideoSizeFromSource();
@@ -216,7 +218,11 @@
 
         arVideoEl.setAttribute('width', TARGET_WIDTH);
         arVideoEl.setAttribute('height', Number(height.toFixed(4)));
-        arVideoEl.setAttribute('position', `0 0 0.001`); // centered on marker
+        
+        // Move PixelGame video up to avoid covering the card
+        const currentProject = window.__currentProject__ || '';
+        const yPosition = (currentProject === 'PixelGame') ? 0.3 : 0;
+        arVideoEl.setAttribute('position', `0 ${yPosition} 0.001`);
       }
 
       // Show buttons when target is found and make them follow the card
@@ -257,6 +263,10 @@
       window.addEventListener('load', () => {
         const promoVideo = document.getElementById('promo-video');
         if (!promoVideo) return;
+        // Set initial project (default is 0km)
+        if (!window.__currentProject__) {
+          window.__currentProject__ = '0km';
+        }
         const onMeta = () => {
           updateArVideoSizeFromSource();
         };
